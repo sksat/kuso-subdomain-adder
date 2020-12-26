@@ -1,0 +1,18 @@
+name: build-image
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: build & push image
+      run: |
+        IMAGE_NAME=kuso-subdomain-adder:${GITHUB_REF#refs/heads/}
+        docker build . --tag ghcr.io/${GITHUB_REPOSITORY}/${IMAGE_NAME}
+        docker login ghcr.io -u sk2sat -p ${DOCKER_PASSWORD}
+        docker push ghcr.io/${GITHUB_REPOSITORY}/${IMAGE_NAME}
+      env:
+        DOCKER_PASSWORD: ${{ secrets.GHCR_TOKEN }}

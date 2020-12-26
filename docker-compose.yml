@@ -1,0 +1,9 @@
+version: '3.1'
+services:
+  sksat-bot-discord:
+    #build: .
+    image: ghcr.io/sk2sat/kuso-subdomain-adder/kuso-subdomain-adder:master
+    volumes:
+      - type: bind
+        source: ./config.toml
+        target: /app/config.toml
