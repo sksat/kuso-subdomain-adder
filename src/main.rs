@@ -1,9 +1,3 @@
-#[macro_use]
-extern crate serde_derive;
-extern crate cloudflare;
-extern crate punycode;
-extern crate toml;
-
 use std::fs;
 use std::io::Read;
 use std::sync::*;
@@ -73,6 +67,7 @@ async fn main() -> std::io::Result<()> {
 #[derive(Serialize, Deserialize)]
 pub struct Subdomain {
     subdomain: String,
+    url: String,
 }
 
 fn app_config(cfg: &mut web::ServiceConfig) {
@@ -97,23 +92,40 @@ async fn handle_subdomain(
         println!("{}", params.subdomain);
         params.subdomain.clone()
     } else {
-        punycode::encode(&params.subdomain).unwrap()
+        let pcode = punycode::encode(&params.subdomain).unwrap();
+        "xn--".to_string() + &pcode
     };
 
-    let params = dns::CreateDnsRecordParams {
+    // add CNAME record
+    let record = dns::CreateDnsRecordParams {
         name: &subdomain,
-        content: dns::DnsContent::TXT {
-            content: "hoge".to_string(),
+        content: dns::DnsContent::CNAME {
+            content: "redirect.kuso.domains".to_string(),
         },
         priority: None,
         proxied: None,
         ttl: None,
     };
-    create_records(&data.lock().unwrap(), params).await;
+    create_records(&data.lock().unwrap(), record).await;
 
-    Ok(HttpResponse::Ok()
-        .content_type("text/plain")
-        .body(subdomain))
+    // add TXT record
+    let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
+    let record = dns::CreateDnsRecordParams {
+        name: &txt_name,
+        content: dns::DnsContent::TXT {
+            content: params.url.clone(),
+        },
+        priority: None,
+        proxied: None,
+        ttl: None,
+    };
+    create_records(&data.lock().unwrap(), record).await;
+
+    // final URL
+    let url = "http://".to_string() + &subdomain + ".teleka.su";
+    let html = format!("<h2>URL: <a href=\"{}\">{}</a></h2>", url, url);
+
+    Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
 async fn create_records(data: &Data, params: dns::CreateDnsRecordParams<'_>) {
