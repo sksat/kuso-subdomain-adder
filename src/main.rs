@@ -32,7 +32,7 @@ struct Data {
 
 lazy_static! {
     pub static ref TEMPLATES: tera::Tera = {
-        let mut tera = match tera::Tera::new("static/*") {
+        let mut tera = match tera::Tera::new("template/*") {
             Ok(t) => t,
             Err(e) => {
                 log::error!("template parse error: {}", e);

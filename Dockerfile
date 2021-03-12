@@ -2,7 +2,6 @@ FROM rust:latest as builder
 WORKDIR build
 COPY Cargo.toml /build/Cargo.toml
 COPY src /build/src
-COPY static /build/static
 RUN cargo build --release
 
 FROM debian:buster-slim

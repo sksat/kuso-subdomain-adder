@@ -8,6 +8,7 @@ services:
       - type: bind
         source: ./config.toml
         target: /app/config.toml
+      - ./template:/app/template
     ports:
       - 8101:8101
   tunnel:
