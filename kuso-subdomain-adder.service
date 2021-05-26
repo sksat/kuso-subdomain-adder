@@ -1,0 +1,15 @@
+[Unit]
+Description=kuso-subdomain-adder Auto Deployment
+
+[Service]
+Type=simple
+Restart=always
+RuntimeMaxSec=3600
+
+Environment=DEPLOY_SCRIPT=/home/sksat/srv/kuso-subdomain-adder/deploy.sh
+ExecStart=bash ${DEPLOY_SCRIPT} start
+ExecStop=bash ${DEPLOY_SCRIPT} stop
+ExecReload=bash ${DEPLOY_SCRIPT} update
+
+[Install]
+WantedBy=default.target
