@@ -5,6 +5,9 @@
 
 A super-easy kuso subdomain utility for [telekasu](https://teleka.su) using [kuso-domains-redirector](https://github.com/KOBA789/kuso-domains-redirector) and Cloudflare API.
 
+- main instance: [kuso-subdomain-adder.sksat.net](https://kuso-subdomain-adder.sksat.net)(on my-room server)
+- sub instance: [kuso-subdomain-adder2.sksat.net](https://kuso-subdomain-adder2.sksat.net)(on cloud server)
+
 ## Deploy
 
 ```sh
