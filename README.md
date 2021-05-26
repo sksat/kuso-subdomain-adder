@@ -11,5 +11,6 @@ A super-easy kuso subdomain utility for [telekasu](https://teleka.su) using [kus
 $ git clone https://github.com/sksat/kuso-subdomain-adder
 $ cd kuso-subdomain-adder
 $ cp .env.production .env
-$ docker-compose up -d
+$ sudo ./deploy.sh install  # install auto-deployment systemd service
+$ sudo systemctl enable --now kuso-subdomain-adder-deploy.service
 ```
