@@ -108,7 +108,7 @@ fn app_config(cfg: &mut web::ServiceConfig) {
 }
 
 async fn index(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> {
-    let data = &mut data.lock().unwrap();
+    let data = &data.lock().unwrap();
     //let context = &mut data.context;
     let mut context = tera::Context::new();
     context.insert("version", env!("CARGO_PKG_VERSION"));
