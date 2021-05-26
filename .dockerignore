@@ -1,5 +1,6 @@
 README.md
 LICENSE
+docs/*
 Dockerfile
 docker-compose.yml
 template/*

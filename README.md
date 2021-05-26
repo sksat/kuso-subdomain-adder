@@ -8,6 +8,10 @@ A super-easy kuso subdomain utility for [telekasu](https://teleka.su) using [kus
 - main instance: [kuso-subdomain-adder.sksat.net](https://kuso-subdomain-adder.sksat.net)(on my-room server)
 - sub instance: [kuso-subdomain-adder2.sksat.net](https://kuso-subdomain-adder2.sksat.net)(on cloud server)
 
+## Screenshot
+
+![screenshot](./docs/screenshot.png)
+
 ## Deploy
 
 ```sh
