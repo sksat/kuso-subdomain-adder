@@ -101,7 +101,8 @@ fn app_config(cfg: &mut web::ServiceConfig) {
 }
 
 async fn index(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> {
-    let mut context = tera::Context::new();
+    let data = &mut data.lock().unwrap();
+    let context = &mut data.context;
     context.insert("version", env!("CARGO_PKG_VERSION"));
     let html = match TEMPLATES.render("index.html", &context) {
         Ok(s) => s,
@@ -163,7 +164,8 @@ async fn handle_subdomain(
     //let html = format!("<h2>URL: <a href=\"{}\">{}</a></h2>", url, url);
     //Ok(HttpResponse::Ok().content_type("text/html").body(html))
 
-    let mut context = tera::Context::new();
+    let data = &mut data.lock().unwrap();
+    let context = &mut data.context;
     context.insert("version", env!("CARGO_PKG_VERSION"));
     context.insert("url", &url);
     context.insert("url_visual", &url_visual);
@@ -185,7 +187,6 @@ async fn handle_subdomain(
 }
 
 async fn create_records(data: &Data, params: dns::CreateDnsRecordParams<'_>) {
-    log::info!("create record");
     let zone_identifier = &data.zone_identifier;
     let cdr = dns::CreateDnsRecord {
         zone_identifier,
