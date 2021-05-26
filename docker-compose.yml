@@ -2,7 +2,7 @@ version: '3.2'
 services:
   kuso-subdomain-adder:
     #build: .
-    image: ghcr.io/sksat/kuso-subdomain-adder/kuso-subdomain-adder:${VERSION}
+    image: ghcr.io/sksat/kuso-subdomain-adder:${VERSION}
     restart: always
     volumes:
       - type: bind
