@@ -4,8 +4,7 @@ use std::sync::*;
 
 use lazy_static::lazy_static;
 
-use actix_web::http::StatusCode;
-use actix_web::{get, middleware, web, App, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{middleware, web, App, HttpResponse, HttpServer, Result};
 
 use serde::{Deserialize, Serialize};
 
@@ -157,7 +156,7 @@ async fn handle_subdomain(
     // final URL
     let protocol = "http://".to_string();
     let domain = ".teleka.su";
-    let url = protocol.clone() + &subdomain + domain.clone();
+    let url = protocol.clone() + &subdomain + domain;
     let url_visual = protocol + &params.subdomain + domain;
     log::info!("URL: {}", url);
 
