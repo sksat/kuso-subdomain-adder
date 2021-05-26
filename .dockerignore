@@ -3,5 +3,6 @@ LICENSE
 Dockerfile
 docker-compose.yml
 template/*
+.env*
 .git/*
 target/*

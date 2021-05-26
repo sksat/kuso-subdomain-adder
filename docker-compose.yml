@@ -2,7 +2,7 @@ version: '3.2'
 services:
   kuso-subdomain-adder:
     #build: .
-    image: ghcr.io/sksat/kuso-subdomain-adder/kuso-subdomain-adder:master
+    image: ghcr.io/sksat/kuso-subdomain-adder/kuso-subdomain-adder:${VERSION}
     restart: always
     volumes:
       - type: bind
@@ -16,4 +16,4 @@ services:
     restart: always
     volumes:
       - ./cloudflared:/etc/cloudflared
-    command: tunnel --hostname kuso-subdomain-adder.sksat.net --url http://kuso-subdomain-adder:8101
+    command: tunnel --hostname ${HOSTNAME} --url http://kuso-subdomain-adder:8101
