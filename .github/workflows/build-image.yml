@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: build & push image
       run: |
         IMAGE_NAME=kuso-subdomain-adder:${GITHUB_REF#refs/heads/}
