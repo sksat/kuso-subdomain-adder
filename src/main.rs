@@ -4,7 +4,7 @@ use std::sync::*;
 
 use lazy_static::lazy_static;
 
-use actix_web::{middleware, web, App, HttpResponse, HttpServer, Result};
+use actix_web::{middleware, post, web, App, HttpResponse, HttpServer, Responder, Result};
 
 use serde::{Deserialize, Serialize};
 
@@ -23,9 +23,23 @@ struct Config {
     zone_identifier: String,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Subdomain {
+    subdomain: String,
+    url: String,
+}
+
+#[derive(Debug)]
+struct Output {
+    url: String,
+    url_visual: String,
+}
+
 struct Data {
     api_client: async_api::Client,
     zone_identifier: String,
+    subdomain: Option<Subdomain>,
+    output: Option<Output>,
     context: tera::Context,
 }
 
@@ -48,7 +62,7 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "kuso_subdomain_adder=info");
     env_logger::init();
 
-    log::info!("kuso start");
+    log::info!("kuso start(version {})", env!("CARGO_PKG_VERSION"));
     //println!("{}", punycode::encode("バーチャル六畳半").unwrap());
 
     let mut cfg_file = fs::File::open("./config.toml")?;
@@ -70,6 +84,8 @@ async fn main() -> std::io::Result<()> {
     let data = Data {
         api_client,
         zone_identifier: config.zone_identifier,
+        subdomain: None,
+        output: None,
         context: tera::Context::new(),
     };
     let data = Arc::new(Mutex::new(data));
@@ -85,24 +101,32 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Subdomain {
-    subdomain: String,
-    url: String,
-}
-
 fn app_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("")
             .service(web::resource("/").route(web::get().to(index)))
-            .service(web::resource("/subdomain").route(web::post().to(handle_subdomain))),
+            .service(add_subdomain),
     );
 }
 
 async fn index(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> {
     let data = &mut data.lock().unwrap();
-    let context = &mut data.context;
+    //let context = &mut data.context;
+    let mut context = tera::Context::new();
     context.insert("version", env!("CARGO_PKG_VERSION"));
+
+    if let Some(output) = &data.output {
+        log::info!("output {:?}", output);
+        context.insert("url", &output.url);
+        context.insert("url_visual", &output.url_visual);
+        if let Some(subdomain) = &data.subdomain {
+            context.insert("target_url", &subdomain.url);
+            context.insert("share_text", &subdomain.subdomain);
+        } else {
+            log::error!("hoge");
+        }
+    }
+
     let html = match TEMPLATES.render("index.html", &context) {
         Ok(s) => s,
         Err(e) => {
@@ -117,10 +141,19 @@ async fn index(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> {
         .body(html))
 }
 
-async fn handle_subdomain(
+#[post("/api/add_subdomain")]
+async fn add_subdomain(
     data: web::Data<Arc<Mutex<Data>>>,
     params: web::Form<Subdomain>,
-) -> Result<HttpResponse> {
+) -> impl Responder {
+    log::info!("[API] add_subdomain");
+
+    let params = params.into_inner();
+    {
+        let data = &mut data.lock().unwrap();
+        data.subdomain = Some(params.clone());
+    }
+
     let subdomain = if params.subdomain.chars().all(|c| c.is_ascii_alphanumeric()) {
         log::info!("subdomain: {}", params.subdomain);
         params.subdomain.clone()
@@ -160,29 +193,11 @@ async fn handle_subdomain(
     let url_visual = protocol + &params.subdomain + domain;
     log::info!("URL: {}", url);
 
-    //let html = format!("<h2>URL: <a href=\"{}\">{}</a></h2>", url, url);
-    //Ok(HttpResponse::Ok().content_type("text/html").body(html))
-
     let data = &mut data.lock().unwrap();
-    let context = &mut data.context;
-    context.insert("version", env!("CARGO_PKG_VERSION"));
-    context.insert("url", &url);
-    context.insert("url_visual", &url_visual);
-    context.insert("target_url", &params.url);
-    context.insert("share_text", &params.subdomain);
+    let out = Output { url, url_visual };
+    data.output = Some(out);
 
-    let html = match TEMPLATES.render("index.html", &context) {
-        Ok(s) => s,
-        Err(e) => {
-            log::error!("render error: {}", e);
-            return Ok(HttpResponse::Ok()
-                .content_type("text/html")
-                .body("<script>alert('render error')</script>"));
-        }
-    };
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; chaset=utf-8")
-        .body(html))
+    HttpResponse::Ok().body("ok")
 }
 
 async fn create_records(data: &Data, params: dns::CreateDnsRecordParams<'_>) {

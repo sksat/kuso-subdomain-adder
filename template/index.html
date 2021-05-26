@@ -9,7 +9,7 @@
 	<body>
     <h2>サブドメイン追加野郎 ver{{ version }}</h2>
 		<br/>
-		<form action="/subdomain" method="post">
+    <form action="/api/add_subdomain" method="post" target="kuso" onsubmit="setTimeout(function(){window.location.reload()}, 100)")>
 			<h3>サブドメイン</h3>
 			<input type="text" name="subdomain">
 
@@ -20,7 +20,7 @@
 			<br/>
 			<input type="submit" value="追加">
 		</form>
-
+    <iframe name="kuso" style="width:0px;height:0px;border:0px;"></iframe>
     {% if url %}
       <br/>
       <h2>URL: <a href="{{ url  }}">{{ url_visual }}</a></h2>
