@@ -1,6 +1,6 @@
 [package]
 name = "kuso-subdomain-adder"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["sksat <sksat@sksat.net>"]
 edition = "2018"
 
