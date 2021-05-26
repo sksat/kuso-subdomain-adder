@@ -3,11 +3,13 @@ cd $(dirname $0)
 
 function update(){
 	local is_running=`docker-compose ps --services --filter "status=running"`
+
+	echo "pulling repository..."
+	git pull
+	echo "pulling new images..."
+	docker-compose pull
 	if [[ "$is_running" != "" ]]; then
 		echo "services are still running!"
-		echo "pulling new images..."
-		docker-compose pull
-		echo "pull complete. shutdown services..."
 		docker-compose down
 	fi
 }
@@ -23,8 +25,8 @@ if [ $# -ne 1 ]; then
 fi
 
 case $1 in
-	"install") cp ./kuso-subdomain-adder-deploy.service /etc/systemd/system/ ;;
-	"uninstall") systemctl stop kuso-subdomain-adder-deploy.service; rm /etc/systemd/system/kuso-subdomain-adder-deploy.service ;;
+	"install") cp ./kuso-subdomain-adder.service /etc/systemd/system/ ;;
+	"uninstall") systemctl stop kuso-subdomain.service; rm /etc/systemd/system/kuso-subdomain-adder.service ;;
 	"start") update; up > /dev/null ;;
 	"stop") docker-compose down ;;
 	"update") update ;;
