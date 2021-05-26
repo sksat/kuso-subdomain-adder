@@ -40,7 +40,6 @@ struct Data {
     zone_identifier: String,
     subdomain: Option<Subdomain>,
     output: Option<Output>,
-    context: tera::Context,
 }
 
 lazy_static! {
@@ -86,7 +85,6 @@ async fn main() -> std::io::Result<()> {
         zone_identifier: config.zone_identifier,
         subdomain: None,
         output: None,
-        context: tera::Context::new(),
     };
     let data = Arc::new(Mutex::new(data));
 
