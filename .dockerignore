@@ -1,0 +1,7 @@
+README.md
+LICENSE
+Dockerfile
+docker-compose.yml
+template/*
+.git/*
+target/*
