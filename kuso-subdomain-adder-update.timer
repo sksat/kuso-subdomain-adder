@@ -1,0 +1,8 @@
+[Unit]
+Description=Auto Update kuso-subdomain-adder
+
+[Timer]
+OnUnitActiveSec=1min
+
+[Install]
+WantedBy=timers.target

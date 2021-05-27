@@ -1,0 +1,10 @@
+[Unit]
+Description=Update kuso-subdomain-adder
+
+[Service]
+Type=oneshot
+
+ExecStart=systemctl reload kuso-subdomain-adder.service
+
+[Install]
+WantedBy=default.target

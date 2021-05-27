@@ -84,8 +84,20 @@ if [ $# -ne 1 ]; then
 fi
 
 case $1 in
-	"install") cp ./kuso-subdomain-adder.service /etc/systemd/system/ ;;
-	"uninstall") systemctl stop kuso-subdomain.service; rm /etc/systemd/system/kuso-subdomain-adder.service ;;
+	"install") \
+		cp ./kuso-subdomain-adder.service /etc/systemd/system/; \
+		cp ./kuso-subdomain-adder-update.* /etc/systemd/system/; \
+		systemctl daemon-reload; \
+		systemctl enable --now kuso-subdomain-adder.service; \
+		systemctl enable --now kuso-subdomain-adder-update.timer; \
+		;;
+	"uninstall") \
+		systemctl stop kuso-subdomain-adder.service; \
+		systemctl stop kuso-subdomain-adder-update.timer; \
+		rm /etc/systemd/system/kuso-subdomain-adder.service; \
+		rm /etc/systemd/system/kuso-subdomain-adder-update.*; \
+		systemctl daemon-reload; \
+		;;
 	"start") update; up > /dev/null ;;
 	"stop") docker-compose down ;;
 	"update") update ;;
