@@ -62,7 +62,7 @@ function update_image(){
 function update(){
 	local is_running=`docker-compose ps --services --filter "status=running"`
 
-	if [[ `update_repo` == "" ]] || [[ `update_image` == "" ]]; then
+	if [[ `update_repo` == "" ]] && [[ `update_image` == "" ]]; then
 		# no update
 		return
 	fi
