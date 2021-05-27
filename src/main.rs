@@ -10,11 +10,8 @@ use serde::{Deserialize, Serialize};
 
 use cloudflare::endpoints::dns;
 use cloudflare::framework::{
-    async_api,
-    async_api::ApiClient,
-    auth::Credentials,
-    response::{ApiFailure, ApiResponse, ApiResult},
-    Environment, HttpApiClientConfig,
+    async_api, async_api::ApiClient, auth::Credentials, response::ApiFailure, Environment,
+    HttpApiClientConfig,
 };
 
 #[derive(Deserialize)]
@@ -212,27 +209,6 @@ async fn create_records(data: &Data, params: dns::CreateDnsRecordParams<'_>) {
                 log::error!("HTTP {}: {:?}", status, err);
             }
             ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
-        },
-    }
-}
-
-fn print_response<T: ApiResult>(response: ApiResponse<T>) {
-    match response {
-        Ok(success) => log::info!("Success: {:#?}", success),
-        Err(e) => match e {
-            ApiFailure::Error(status, errors) => {
-                log::info!("HTTP {}:", status);
-                for err in errors.errors {
-                    log::error!("Error {}: {}", err.code, err.message);
-                    for (k, v) in err.other {
-                        log::error!("{}: {}", k, v);
-                    }
-                }
-                for (k, v) in errors.other {
-                    log::error!("{}: {}", k, v);
-                }
-            }
-            ApiFailure::Invalid(reqwest_err) => log::error!("Error: {}", reqwest_err),
         },
     }
 }
