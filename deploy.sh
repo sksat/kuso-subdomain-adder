@@ -31,37 +31,41 @@ function update_repo(){
 	local local_commit=`git rev-parse HEAD`
 	local remote_commit=`git ls-remote origin ${branch} | awk '{print $1}'`
 
+	if [[ $local_commit = $remote_commit ]]; then
+		# no update
+		return
+	fi
+
 	echo "local:  ${local_commit}"
 	echo "remote: ${remote_commit}"
-
-	if [[ $local_commit != $remote_commit ]]; then
-		echo "pulling repository..."
-		git pull origin $branch
-	fi
+	echo "pulling repository..."
+	git pull origin $branch
 	echo ""
 }
 
 function update_image(){
-	echo "update docker image..."
-
 	local local_img=$(get_local_img $VERSION)
 	local remote_img=$(get_remote_img $VERSION )
 
+	if [[ $local_img = $remote_img ]]; then
+		# no update
+		return
+	fi
+
 	echo "local:  $local_img"
 	echo "remote: $remote_img"
-
-	if [[ $local_img != $remote_img ]]; then
-		echo "pulling new images..."
-		docker-compose pull
-	fi
+	echo "pulling new images..."
+	docker-compose pull
 	echo ""
 }
 
 function update(){
 	local is_running=`docker-compose ps --services --filter "status=running"`
 
-	update_repo
-	update_image
+	if [[ `update_repo` == "" ]] || [[ `update_image` == "" ]]; then
+		# no update
+		return
+	fi
 
 	if [[ "$is_running" != "" ]]; then
 		echo "services are still running!"
