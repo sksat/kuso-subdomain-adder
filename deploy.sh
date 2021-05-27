@@ -89,6 +89,7 @@ case $1 in
 		cp ./kuso-subdomain-adder-update.* /etc/systemd/system/; \
 		systemctl daemon-reload; \
 		systemctl enable --now kuso-subdomain-adder.service; \
+		systemctl enable --now kuso-subdomain-adder-update.service; \
 		systemctl enable --now kuso-subdomain-adder-update.timer; \
 		;;
 	"uninstall") \
