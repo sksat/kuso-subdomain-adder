@@ -8,6 +8,14 @@ fi
 
 source .env
 
+function notify(){
+	local msg="$1"
+	if [[ -v DISCORD_WEBHOOK ]]; then
+		curl -H "Accept: application/json" -H "Content-type: application/json" -X POST \
+			-d '{"username":"kuso","content":'"\"$msg\"}" $DISCORD_WEBHOOK
+	fi
+}
+
 function get_remote_img(){
 	local tag=$1
 	local user=sksat
@@ -40,6 +48,8 @@ function update_repo(){
 	echo "remote: ${remote_commit}"
 	echo "pulling repository..."
 	git pull origin $branch
+
+	notify "repository updated: ${local_commit} -> ${remote_commit}"
 	echo ""
 }
 
@@ -56,6 +66,8 @@ function update_image(){
 	echo "remote: $remote_img"
 	echo "pulling new images..."
 	docker-compose pull
+
+	notify "image updated: ${local_img} -> ${remote_img}"
 	echo ""
 }
 
@@ -70,10 +82,12 @@ function update(){
 	if [[ "$is_running" != "" ]]; then
 		echo "services are still running!"
 		docker-compose down
+		notify "service is down"
 	fi
 }
 
 function up(){
+	notify "start service"
 	docker-compose up $1
 }
 
