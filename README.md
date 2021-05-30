@@ -11,10 +11,13 @@ A ***super-easy*** kuso subdomain utility for [telekasu](https://teleka.su) usin
 ## Deploy
 
 ```sh
+$ git clone https://github.com/sksat/compose-cd     # CD service for docker-compose
+$ cd compose-cd
+$ sudo ./compose-cd install
+$ cd ..
 $ git clone https://github.com/sksat/kuso-subdomain-adder
 $ cd kuso-subdomain-adder
 $ cp .env.production .env
-$ sudo ./deploy.sh install  # install & enable & start auto-deploy systemd service
 ```
 
 ## FAQ
