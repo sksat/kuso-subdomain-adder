@@ -100,11 +100,32 @@ fn app_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("")
             .service(web::resource("/").route(web::get().to(index)))
+            .service(web::resource("/result").route(web::get().to(page_result)))
             .service(add_subdomain),
     );
 }
 
-async fn index(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> {
+async fn index() -> Result<HttpResponse> {
+    //let data = &data.lock().unwrap();
+    //let context = &mut data.context;
+    let mut context = tera::Context::new();
+    context.insert("version", env!("CARGO_PKG_VERSION"));
+
+    let html = match TEMPLATES.render("index.html", &context) {
+        Ok(s) => s,
+        Err(e) => {
+            log::error!("render error: {}", e);
+            return Ok(HttpResponse::Ok()
+                .content_type("text/html")
+                .body("<script>alert('render error')</script>"));
+        }
+    };
+    Ok(HttpResponse::Ok()
+        .content_type("text/html; chaset=utf-8")
+        .body(html))
+}
+
+async fn page_result(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> {
     let data = &data.lock().unwrap();
     //let context = &mut data.context;
     let mut context = tera::Context::new();
@@ -122,7 +143,7 @@ async fn index(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> {
         }
     }
 
-    let html = match TEMPLATES.render("index.html", &context) {
+    let html = match TEMPLATES.render("result.html", &context) {
         Ok(s) => s,
         Err(e) => {
             log::error!("render error: {}", e);
@@ -144,10 +165,14 @@ async fn add_subdomain(
     log::info!("[API] add_subdomain");
 
     let params = params.into_inner();
-    {
-        let data = &mut data.lock().unwrap();
-        data.subdomain = Some(params.clone());
+
+    let data = data.lock();
+    if let Err(_e) = data {
+        return HttpResponse::Conflict().body("kowareta");
     }
+
+    let data = &mut data.unwrap();
+    data.subdomain = Some(params.clone());
 
     let subdomain = if params.subdomain.chars().all(|c| c.is_ascii_alphanumeric()) {
         log::info!("subdomain: {}", params.subdomain);
@@ -167,7 +192,7 @@ async fn add_subdomain(
         proxied: None,
         ttl: None,
     };
-    create_records(&data.lock().unwrap(), record).await;
+    create_records(&data, record).await;
 
     let content = params.url.clone();
     log::info!("add TXT: {}", content);
@@ -179,7 +204,7 @@ async fn add_subdomain(
         proxied: None,
         ttl: None,
     };
-    create_records(&data.lock().unwrap(), record).await;
+    create_records(&data, record).await;
 
     // final URL
     let protocol = "http://".to_string();
@@ -188,11 +213,13 @@ async fn add_subdomain(
     let url_visual = protocol + &params.subdomain + domain;
     log::info!("URL: {}", url);
 
-    let data = &mut data.lock().unwrap();
+    //let data = &mut data.lock().unwrap();
     let out = Output { url, url_visual };
     data.output = Some(out);
 
-    HttpResponse::Ok().body("ok")
+    HttpResponse::Found()
+        .append_header(("Location", "/result"))
+        .finish()
 }
 
 async fn create_records(data: &Data, params: dns::CreateDnsRecordParams<'_>) {
