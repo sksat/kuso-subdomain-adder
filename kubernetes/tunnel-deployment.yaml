@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: tunnel
+  name: tunnel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: tunnel
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: tunnel
+    spec:
+      containers:
+        - args:
+            - tunnel
+            - --hostname
+            - --url
+            - http://kuso-subdomain-adder:8101
+          image: cloudflare/cloudflared:2021.5.10
+          name: tunnel
+          resources: {}
+          volumeMounts:
+            - mountPath: /etc/cloudflared
+              name: tunnel-claim0
+      restartPolicy: Always
+      volumes:
+        - name: tunnel-claim0
+          persistentVolumeClaim:
+            claimName: tunnel-claim0
+status: {}

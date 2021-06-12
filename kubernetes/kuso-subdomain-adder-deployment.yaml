@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: kuso-subdomain-adder
+  name: kuso-subdomain-adder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: kuso-subdomain-adder
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: kuso-subdomain-adder
+    spec:
+      containers:
+        - image: 'ghcr.io/sksat/kuso-subdomain-adder:'
+          name: kuso-subdomain-adder
+          ports:
+            - containerPort: 8101
+          resources: {}
+          volumeMounts:
+            - mountPath: /app/config.toml
+              name: kuso-subdomain-adder-claim0
+            - mountPath: /app/template
+              name: kuso-subdomain-adder-claim1
+      restartPolicy: Always
+      volumes:
+        - name: kuso-subdomain-adder-claim0
+          persistentVolumeClaim:
+            claimName: kuso-subdomain-adder-claim0
+        - name: kuso-subdomain-adder-claim1
+          persistentVolumeClaim:
+            claimName: kuso-subdomain-adder-claim1
+status: {}
