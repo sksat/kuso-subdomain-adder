@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>kuso-subdomain-adder</title>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+	</head>
+	<body>
+    <h2>サブドメイン追加野郎 ver{{ version }}</h2>
+		<br/>
+    {% if url %}
+      <br/>
+      <h2>URL: <a href="{{ url  }}">{{ url_visual }}</a></h2>
+
+      <div class="twitter">
+        <a href="//twitter.com/share" class="twitter-share-button" data-url="{{ url }}" data-text="{{ share_text }}" data-lang="ja">ついーと</a>
+      </div>
+    {% endif %}
+	</body>
+</html>
