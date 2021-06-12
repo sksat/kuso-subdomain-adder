@@ -99,10 +99,17 @@ async fn main() -> std::io::Result<()> {
         )
         .arg(
             Arg::with_name("debug")
+                .long("debug")
                 .short("d")
                 .help("print debug information verbosely"),
         )
         .subcommand(clap::SubCommand::with_name("srv").about("start server"))
+        .subcommand(
+            clap::SubCommand::with_name("add")
+                .about("add kuso subdomain")
+                .arg(Arg::with_name("subdomain").required(true).help("subdomain"))
+                .arg(Arg::with_name("target").required(true).help("target URL")),
+        )
         .get_matches();
 
     let debug_level = if matches.is_present("debug") {
@@ -132,6 +139,20 @@ async fn main() -> std::io::Result<()> {
         .bind("0.0.0.0:8101")?
         .run()
         .await?
+    } else if let Some(m) = matches.subcommand_matches("add") {
+        log::info!("add subdomain manually");
+
+        let subdomain = m.value_of("subdomain").unwrap();
+        let target_url = m.value_of("target").unwrap();
+        let result_sd = add_subdomain(
+            &data.api_client,
+            &data.zone_identifier,
+            &subdomain,
+            &target_url,
+        )
+        .await;
+
+        log::info!("result URL: http://{}.teleka.su", result_sd);
     }
 
     Ok(())
@@ -142,7 +163,7 @@ fn app_config(cfg: &mut web::ServiceConfig) {
         web::scope("")
             .service(web::resource("/").route(web::get().to(index)))
             .service(web::resource("/result").route(web::get().to(page_result)))
-            .service(add_subdomain),
+            .service(api_add_subdomain),
     );
 }
 
@@ -199,7 +220,7 @@ async fn page_result(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> 
 }
 
 #[post("/api/add_subdomain")]
-async fn add_subdomain(
+async fn api_add_subdomain(
     data: web::Data<Arc<Mutex<Data>>>,
     params: web::Form<Subdomain>,
 ) -> impl Responder {
@@ -215,37 +236,13 @@ async fn add_subdomain(
     let data = &mut data.unwrap();
     data.subdomain = Some(params.clone());
 
-    let subdomain = if params.subdomain.chars().all(|c| c.is_ascii_alphanumeric()) {
-        log::info!("subdomain: {}", params.subdomain);
-        params.subdomain.clone()
-    } else {
-        let pcode = punycode::encode(&params.subdomain).unwrap();
-        log::info!("subdomain: {} -> {}", &params.subdomain, &pcode);
-        "xn--".to_string() + &pcode
-    };
-
-    let content = "redirect.kuso.domains".to_string();
-    log::info!("add CNAME: {}", content);
-    let record = dns::CreateDnsRecordParams {
-        name: &subdomain,
-        content: dns::DnsContent::CNAME { content },
-        priority: None,
-        proxied: None,
-        ttl: None,
-    };
-    create_records(&data, record).await;
-
-    let content = params.url.clone();
-    log::info!("add TXT: {}", content);
-    let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
-    let record = dns::CreateDnsRecordParams {
-        name: &txt_name,
-        content: dns::DnsContent::TXT { content },
-        priority: None,
-        proxied: None,
-        ttl: None,
-    };
-    create_records(&data, record).await;
+    let subdomain = add_subdomain(
+        &data.api_client,
+        &data.zone_identifier,
+        &params.subdomain,
+        &params.url,
+    )
+    .await;
 
     // final URL
     let protocol = "http://".to_string();
@@ -263,13 +260,58 @@ async fn add_subdomain(
         .finish()
 }
 
-async fn create_records(data: &Data, params: dns::CreateDnsRecordParams<'_>) {
-    let zone_identifier = &data.zone_identifier;
+async fn add_subdomain(
+    api_client: &async_api::Client,
+    zone_identifier: &str,
+    subdomain: &str,
+    target_url: &str,
+) -> String {
+    let subdomain = if subdomain.chars().all(|c| c.is_ascii_alphanumeric()) {
+        log::info!("subdomain: {}", subdomain);
+        subdomain.to_string()
+    } else {
+        let pcode = punycode::encode(&subdomain).unwrap();
+        log::info!("subdomain: {} -> {}", &subdomain, &pcode);
+        "xn--".to_string() + &pcode
+    };
+
+    let content = "redirect.kuso.domains".to_string();
+    log::info!("add CNAME: {}", content);
+    let record = dns::CreateDnsRecordParams {
+        name: &subdomain,
+        content: dns::DnsContent::CNAME { content },
+        priority: None,
+        proxied: None,
+        ttl: None,
+    };
+    create_records(&api_client, &zone_identifier, record).await;
+
+    let content = target_url.to_string();
+    log::info!("add TXT: {}", content);
+    let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
+    let record = dns::CreateDnsRecordParams {
+        name: &txt_name,
+        content: dns::DnsContent::TXT { content },
+        priority: None,
+        proxied: None,
+        ttl: None,
+    };
+    create_records(&api_client, &zone_identifier, record).await;
+
+    subdomain
+}
+
+async fn create_records(
+    api_client: &async_api::Client,
+    zone_identifier: &str,
+    params: dns::CreateDnsRecordParams<'_>,
+) {
+    let zone_identifier = zone_identifier;
     let cdr = dns::CreateDnsRecord {
         zone_identifier,
         params,
     };
-    let response = data.api_client.request(&cdr).await;
+    let response = api_client.request(&cdr).await;
     match response {
         Ok(success) => log::info!("success: {:?}", success),
         Err(e) => match e {
