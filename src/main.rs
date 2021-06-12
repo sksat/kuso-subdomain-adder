@@ -110,6 +110,7 @@ async fn main() -> std::io::Result<()> {
                 .arg(Arg::with_name("subdomain").required(true).help("subdomain"))
                 .arg(Arg::with_name("target").required(true).help("target URL")),
         )
+        .subcommand(clap::SubCommand::with_name("list"))
         .get_matches();
 
     let debug_level = if matches.is_present("debug") {
@@ -153,6 +154,19 @@ async fn main() -> std::io::Result<()> {
         .await;
 
         log::info!("result URL: http://{}.teleka.su", result_sd);
+    } else if let Some(_m) = matches.subcommand_matches("list") {
+        log::info!("list");
+
+        let params = dns::ListDnsRecordsParams {
+            record_type: None,
+            name: None,
+            page: None,
+            per_page: None,
+            order: None,
+            direction: None,
+            search_match: None,
+        };
+        let _ = list_records(&data.api_client, &data.zone_identifier, params).await;
     }
 
     Ok(())
@@ -284,7 +298,7 @@ async fn add_subdomain(
         proxied: None,
         ttl: None,
     };
-    create_records(&api_client, &zone_identifier, record).await;
+    create_record(&api_client, &zone_identifier, record).await;
 
     let content = target_url.to_string();
     log::info!("add TXT: {}", content);
@@ -296,12 +310,12 @@ async fn add_subdomain(
         proxied: None,
         ttl: None,
     };
-    create_records(&api_client, &zone_identifier, record).await;
+    create_record(&api_client, &zone_identifier, record).await;
 
     subdomain
 }
 
-async fn create_records(
+async fn create_record(
     api_client: &async_api::Client,
     zone_identifier: &str,
     params: dns::CreateDnsRecordParams<'_>,
@@ -314,6 +328,34 @@ async fn create_records(
     let response = api_client.request(&cdr).await;
     match response {
         Ok(success) => log::info!("success: {:?}", success),
+        Err(e) => match e {
+            ApiFailure::Error(status, err) => {
+                log::error!("HTTP {}: {:?}", status, err);
+            }
+            ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
+        },
+    }
+}
+
+async fn list_records(
+    api_client: &async_api::Client,
+    zone_identifier: &str,
+    params: dns::ListDnsRecordsParams,
+) {
+    let ldr = dns::ListDnsRecords {
+        zone_identifier,
+        params,
+    };
+
+    let response = api_client.request(&ldr).await;
+    match response {
+        Ok(success) => {
+            //log::info!("success: {:?}", success);
+            let record: Vec<dns::DnsRecord> = success.result;
+            for r in record {
+                log::info!("{:?}", r);
+            }
+        }
         Err(e) => match e {
             ApiFailure::Error(status, err) => {
                 log::error!("HTTP {}: {:?}", status, err);
