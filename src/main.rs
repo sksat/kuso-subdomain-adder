@@ -53,17 +53,12 @@ lazy_static! {
     };
 }
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "kuso_subdomain_adder=info");
-    env_logger::init();
+fn cfg2data(cfg_file: &str) -> Result<Data, ()> {
+    log::info!("config file: {}", cfg_file);
 
-    log::info!("kuso start(version {})", env!("CARGO_PKG_VERSION"));
-    //println!("{}", punycode::encode("バーチャル六畳半").unwrap());
-
-    let mut cfg_file = fs::File::open("./config.toml")?;
+    let mut cfg_file = fs::File::open(cfg_file).unwrap();
     let mut config = String::new();
-    cfg_file.read_to_string(&mut config)?;
+    cfg_file.read_to_string(&mut config).unwrap();
     let config: Config = toml::from_str(&config).unwrap();
 
     let credentials = Credentials::UserAuthToken {
@@ -77,23 +72,69 @@ async fn main() -> std::io::Result<()> {
     )
     .unwrap();
 
-    let data = Data {
+    Ok(Data {
         api_client,
         zone_identifier: config.zone_identifier,
         subdomain: None,
         output: None,
-    };
-    let data = Arc::new(Mutex::new(data));
-
-    HttpServer::new(move || {
-        App::new()
-            .wrap(middleware::Logger::default())
-            .data(data.clone())
-            .configure(app_config)
     })
-    .bind("0.0.0.0:8101")?
-    .run()
-    .await
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    use clap::Arg;
+
+    let matches = clap::App::new(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .arg(
+            Arg::with_name("config")
+                .short("c")
+                .long("config")
+                .value_name("FILE")
+                .default_value("./config.toml")
+                .help("set config file")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("debug")
+                .short("d")
+                .help("print debug information verbosely"),
+        )
+        .subcommand(clap::SubCommand::with_name("srv").about("start server"))
+        .get_matches();
+
+    let debug_level = if matches.is_present("debug") {
+        "debug"
+    } else {
+        "info"
+    };
+    std::env::set_var("RUST_LOG", format!("kuso_subdomain_adder={}", debug_level));
+    env_logger::init();
+    log::debug!("debug mode");
+
+    //println!("{}", punycode::encode("バーチャル六畳半").unwrap());
+
+    let cfg_file = matches.value_of("config").unwrap();
+    let data = cfg2data(cfg_file).unwrap();
+
+    if let Some(_m) = matches.subcommand_matches("srv") {
+        log::info!("kuso start(version {})", env!("CARGO_PKG_VERSION"));
+
+        let data = Arc::new(Mutex::new(data));
+        HttpServer::new(move || {
+            App::new()
+                .wrap(middleware::Logger::default())
+                .data(data.clone())
+                .configure(app_config)
+        })
+        .bind("0.0.0.0:8101")?
+        .run()
+        .await?
+    }
+
+    Ok(())
 }
 
 fn app_config(cfg: &mut web::ServiceConfig) {
