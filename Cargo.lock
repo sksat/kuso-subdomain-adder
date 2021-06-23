@@ -501,9 +501,9 @@ dependencies = [
 
 [[package]]
 name = "cloudflare"
-version = "0.8.3"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a461e90f8748b43fed5bd6f9fca4217c08a2187c2364c5b9c1b07e4a5c65d0c"
+checksum = "f510cdc989428aff0cf3b44b5b73c26498b1ef09f4dfcf34de5e2c1eab5b76dd"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1684,9 +1684,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.11.3"
+version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2296f2fac53979e8ccbc4a1136b25dcefd37be9ed7e4a1f6b05a6029c84ff124"
+checksum = "246e9f61b9bb77df069a947682be06e31ac43ea37862e244a69f177694ea6d22"
 dependencies = [
  "base64",
  "bytes",
