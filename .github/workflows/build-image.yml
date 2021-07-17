@@ -12,7 +12,7 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'Dockerfile'
-      - '.github/workflows/**'
+      - '.github/workflows/build-image.yml'
 
 jobs:
   build:
