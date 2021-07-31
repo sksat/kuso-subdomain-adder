@@ -1,7 +1,6 @@
 name: Daily Container Image Vulnerability Scan
 
 on:
-  push:
   schedule:
     - cron: '0 15 * * *'
   workflow_dispatch:
