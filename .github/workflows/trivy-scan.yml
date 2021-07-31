@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull image
-        run: docker pull ghcr.io/sksat/kuso-subdomain-adder:${{ github.event.inputs.tag }}
+        run: docker pull ghcr.io/sksat/kuso-subdomain-adder:${{ github.event.inputs.tag || master }}
 
       - uses: lazy-actions/gitrivy@v3
         with:
