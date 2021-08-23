@@ -3,8 +3,7 @@ name: Build Container Image
 on:
   push:
     branches:
-      - master
-      - develop
+      - '*'
     tags:
       - v*
     paths:
@@ -47,6 +46,8 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        push: true
+        push: ${{ github.ref == 'refs/heads/master' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
