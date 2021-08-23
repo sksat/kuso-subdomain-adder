@@ -4,7 +4,7 @@ COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM lukemathwalker/cargo-chef:latest-rust-1.53.0 as cacher
-WORKDIR app
+WORKDIR chef
 COPY --from=planner /chef/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
