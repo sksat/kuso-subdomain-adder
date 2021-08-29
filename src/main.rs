@@ -54,8 +54,6 @@ lazy_static! {
 }
 
 fn cfg2data(cfg_file: &str) -> Result<Data, ()> {
-    log::info!("config file: {}", cfg_file);
-
     let mut cfg_file = fs::File::open(cfg_file).unwrap();
     let mut config = String::new();
     cfg_file.read_to_string(&mut config).unwrap();
