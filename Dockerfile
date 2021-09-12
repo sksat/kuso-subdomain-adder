@@ -1,9 +1,9 @@
-FROM ghcr.io/sksat/cargo-chef-docker:1.54.0-bullseye as planner
+FROM ghcr.io/sksat/cargo-chef-docker:1.55.0-bullseye as planner
 WORKDIR chef
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
-FROM ghcr.io/sksat/cargo-chef-docker:1.54.0-bullseye as builder
+FROM ghcr.io/sksat/cargo-chef-docker:1.55.0-bullseye as builder
 WORKDIR build
 COPY --from=planner /chef/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
