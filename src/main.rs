@@ -146,8 +146,8 @@ async fn main() -> std::io::Result<()> {
         let result_sd = add_subdomain(
             &data.api_client,
             &data.zone_identifier,
-            &subdomain,
-            &target_url,
+            subdomain,
+            target_url,
         )
         .await;
 
@@ -282,7 +282,7 @@ async fn add_subdomain(
         log::info!("subdomain: {}", subdomain);
         subdomain.to_string()
     } else {
-        let pcode = punycode::encode(&subdomain).unwrap();
+        let pcode = punycode::encode(subdomain).unwrap();
         log::info!("subdomain: {} -> {}", &subdomain, &pcode);
         "xn--".to_string() + &pcode
     };
@@ -296,7 +296,7 @@ async fn add_subdomain(
         proxied: None,
         ttl: None,
     };
-    create_record(&api_client, &zone_identifier, record).await;
+    create_record(api_client, zone_identifier, record).await;
 
     let content = target_url.to_string();
     log::info!("add TXT: {}", content);
@@ -308,7 +308,7 @@ async fn add_subdomain(
         proxied: None,
         ttl: None,
     };
-    create_record(&api_client, &zone_identifier, record).await;
+    create_record(api_client, zone_identifier, record).await;
 
     subdomain
 }
