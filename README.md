@@ -66,3 +66,8 @@ But I'm not doing that!
 ## Screenshot
 
 ![screenshot](./docs/screenshot.png)
+
+## Slide
+
+- VRC-LT #9
+[![slide page 0](https://speakerd.s3.amazonaws.com/presentations/3b08ab8f117b4696ba0f74aaedc91515/slide_0.jpg)](https://speakerdeck.com/sksat/teleka-dot-suwozhi-eruji-shu)
