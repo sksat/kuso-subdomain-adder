@@ -132,7 +132,7 @@ async fn main() -> std::io::Result<()> {
         HttpServer::new(move || {
             App::new()
                 .wrap(middleware::Logger::default())
-                .app_data(data.clone())
+                .data(data.clone())
                 .configure(app_config)
         })
         .bind("0.0.0.0:8101")?
