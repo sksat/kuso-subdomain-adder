@@ -12,7 +12,7 @@ services:
     ports:
       - 8101:8101
   tunnel:
-    image: cloudflare/cloudflared:2021.9.2
+    image: cloudflare/cloudflared:2021.10.0
     restart: always
     volumes:
       - ./cloudflared:/etc/cloudflared
