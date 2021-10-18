@@ -4,9 +4,9 @@ use std::sync::*;
 
 use lazy_static::lazy_static;
 
-use actix_web::{middleware, post, web, App, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{middleware, web, App, HttpResponse, HttpServer, Result};
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
 
 use cloudflare::endpoints::dns;
 use cloudflare::framework::{
@@ -14,16 +14,13 @@ use cloudflare::framework::{
     HttpApiClientConfig,
 };
 
+mod api;
+mod subdomain;
+
 #[derive(Deserialize)]
 struct Config {
     token: String,
     zone_identifier: String,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Subdomain {
-    subdomain: String,
-    url: String,
 }
 
 #[derive(Debug)]
@@ -35,7 +32,7 @@ struct Output {
 struct Data {
     api_client: async_api::Client,
     zone_identifier: String,
-    subdomain: Option<Subdomain>,
+    subdomain: Option<subdomain::Subdomain>,
     output: Option<Output>,
 }
 
@@ -150,7 +147,7 @@ async fn main() -> std::io::Result<()> {
 
         let subdomain = m.value_of("subdomain").unwrap();
         let target_url = m.value_of("target").unwrap();
-        let result_sd = add_subdomain(
+        let result_sd = subdomain::add(
             &data.api_client,
             &data.zone_identifier,
             subdomain,
@@ -182,7 +179,7 @@ fn app_config(cfg: &mut web::ServiceConfig) {
         web::scope("")
             .service(web::resource("/").route(web::get().to(index)))
             .service(web::resource("/result").route(web::get().to(page_result)))
-            .service(api_add_subdomain),
+            .service(api::add_subdomain),
     );
 }
 
@@ -248,88 +245,6 @@ async fn page_result(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> 
     Ok(HttpResponse::Ok()
         .content_type("text/html; chaset=utf-8")
         .body(html))
-}
-
-#[post("/api/add_subdomain")]
-async fn api_add_subdomain(
-    data: web::Data<Arc<Mutex<Data>>>,
-    params: web::Form<Subdomain>,
-) -> impl Responder {
-    log::info!("[API] add_subdomain");
-
-    let params = params.into_inner();
-
-    let data = data.lock();
-    if let Err(_e) = data {
-        return HttpResponse::Conflict().body("kowareta");
-    }
-
-    let data = &mut data.unwrap();
-    data.subdomain = Some(params.clone());
-
-    let subdomain = add_subdomain(
-        &data.api_client,
-        &data.zone_identifier,
-        &params.subdomain,
-        &params.url,
-    )
-    .await;
-
-    // final URL
-    let protocol = "http://".to_string();
-    let domain = ".teleka.su";
-    let url = protocol.clone() + &subdomain + domain;
-    let url_visual = protocol + &params.subdomain + domain;
-    log::info!("URL: {}", url);
-
-    //let data = &mut data.lock().unwrap();
-    let out = Output { url, url_visual };
-    data.output = Some(out);
-
-    HttpResponse::Found()
-        .append_header(("Location", "/result"))
-        .finish()
-}
-
-async fn add_subdomain(
-    api_client: &async_api::Client,
-    zone_identifier: &str,
-    subdomain: &str,
-    target_url: &str,
-) -> String {
-    let subdomain = if subdomain.chars().all(|c| c.is_ascii_alphanumeric()) {
-        log::info!("subdomain: {}", subdomain);
-        subdomain.to_string()
-    } else {
-        let pcode = punycode::encode(subdomain).unwrap();
-        log::info!("subdomain: {} -> {}", &subdomain, &pcode);
-        "xn--".to_string() + &pcode
-    };
-
-    let content = "redirect.kuso.domains".to_string();
-    log::info!("add CNAME: {}", content);
-    let record = dns::CreateDnsRecordParams {
-        name: &subdomain,
-        content: dns::DnsContent::CNAME { content },
-        priority: None,
-        proxied: None,
-        ttl: None,
-    };
-    create_record(api_client, zone_identifier, record).await;
-
-    let content = target_url.to_string();
-    log::info!("add TXT: {}", content);
-    let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
-    let record = dns::CreateDnsRecordParams {
-        name: &txt_name,
-        content: dns::DnsContent::TXT { content },
-        priority: None,
-        proxied: None,
-        ttl: None,
-    };
-    create_record(api_client, zone_identifier, record).await;
-
-    subdomain
 }
 
 async fn create_record(
