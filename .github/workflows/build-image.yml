@@ -12,6 +12,7 @@ on:
       - 'Cargo.lock'
       - 'rust-toolchain'
       - 'Dockerfile'
+      - '.dockerignore'
       - '.github/workflows/build-image.yml'
 
 jobs:
