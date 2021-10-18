@@ -21,13 +21,7 @@ async fn add_subdomain(
     let data = &mut data.unwrap();
     data.subdomain = Some(params.clone());
 
-    let subdomain = subdomain::add(
-        &data.api_client,
-        &data.zone_identifier,
-        &params.subdomain,
-        &params.url,
-    )
-    .await;
+    let subdomain = subdomain::add(&data.api_client, &params.subdomain, &params.url).await;
 
     // final URL
     let protocol = "http://".to_string();

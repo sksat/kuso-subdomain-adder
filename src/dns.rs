@@ -17,8 +17,8 @@ pub enum ProviderClient {
 }
 
 pub struct CloudflareClient {
-    client: cloudflare::framework::async_api::Client,
-    zone_identifier: String,
+    pub client: cloudflare::framework::async_api::Client,
+    pub zone_identifier: String,
 }
 
 pub fn cname<'a>(rname: &'a str, cname: &'a str) -> Record<'a> {

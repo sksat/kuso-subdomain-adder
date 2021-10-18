@@ -27,8 +27,7 @@ struct Output {
 }
 
 struct Data {
-    api_client: async_api::Client,
-    zone_identifier: String,
+    api_client: dns::ProviderClient,
     subdomain: Option<subdomain::Subdomain>,
     output: Option<Output>,
 }
@@ -57,16 +56,20 @@ fn cfg2data(cfg_file: &str) -> Result<Data, ()> {
         token: config.token,
     };
 
-    let api_client = async_api::Client::new(
+    let cf_client = async_api::Client::new(
         credentials,
         HttpApiClientConfig::default(),
         Environment::Production,
     )
     .unwrap();
+    let cf_client = dns::CloudflareClient {
+        client: cf_client,
+        zone_identifier: config.zone_identifier,
+    };
+    let api_client = dns::ProviderClient::Cloudflare(cf_client);
 
     Ok(Data {
         api_client,
-        zone_identifier: config.zone_identifier,
         subdomain: None,
         output: None,
     })
@@ -144,13 +147,7 @@ async fn main() -> std::io::Result<()> {
 
         let subdomain = m.value_of("subdomain").unwrap();
         let target_url = m.value_of("target").unwrap();
-        let result_sd = subdomain::add(
-            &data.api_client,
-            &data.zone_identifier,
-            subdomain,
-            target_url,
-        )
-        .await;
+        let result_sd = subdomain::add(&data.api_client, subdomain, target_url).await;
 
         log::info!("result URL: http://{}.teleka.su", result_sd);
     } else if let Some(_m) = matches.subcommand_matches("list") {
@@ -165,7 +162,12 @@ async fn main() -> std::io::Result<()> {
             direction: None,
             search_match: None,
         };
-        let _ = dns::list_records(&data.api_client, &data.zone_identifier, params).await;
+        // TODO: remove
+        let cf_client = match &data.api_client {
+            crate::dns::ProviderClient::Cloudflare(cf) => cf,
+            _ => unreachable!(),
+        };
+        let _ = dns::list_records(&cf_client.client, &cf_client.zone_identifier, params).await;
     }
 
     Ok(())

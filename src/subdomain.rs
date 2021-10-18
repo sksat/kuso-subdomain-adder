@@ -1,5 +1,3 @@
-use cloudflare::framework::async_api;
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -9,8 +7,7 @@ pub struct Subdomain {
 }
 
 pub async fn add(
-    api_client: &async_api::Client,
-    zone_identifier: &str,
+    api_client: &crate::dns::ProviderClient,
     subdomain: &str,
     target_url: &str,
 ) -> String {
@@ -23,16 +20,22 @@ pub async fn add(
         "xn--".to_string() + &pcode
     };
 
+    // TODO: remove
+    let cf_client = match api_client {
+        crate::dns::ProviderClient::Cloudflare(cf) => cf,
+        _ => unreachable!(),
+    };
+
     let content = "redirect.kuso.domains";
     log::info!("add CNAME: {}", content);
     let record = crate::dns::cname(&subdomain, content);
-    crate::dns::create_record(api_client, zone_identifier, record.into()).await;
+    crate::dns::create_record(&cf_client.client, &cf_client.zone_identifier, record.into()).await;
 
     let content = target_url;
     log::info!("add TXT: {}", content);
     let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
     let record = crate::dns::txt(&txt_name, content);
-    crate::dns::create_record(api_client, zone_identifier, record.into()).await;
+    crate::dns::create_record(&cf_client.client, &cf_client.zone_identifier, record.into()).await;
 
     subdomain
 }
