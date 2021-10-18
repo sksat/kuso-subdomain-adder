@@ -3,8 +3,13 @@ name = "kuso-subdomain-adder"
 version = "0.3.4"
 authors = ["sksat <sksat@sksat.net>"]
 edition = "2018"
+build = "build.rs"
 
 license = "MIT"
+
+[build-dependencies]
+vergen = { version = "5.1.15", default-features = false, features = ["build", "git"] }
+anyhow = "1.0.44"
 
 [dependencies]
 actix-web = "4.0.0-beta.9"

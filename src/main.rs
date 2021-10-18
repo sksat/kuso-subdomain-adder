@@ -82,8 +82,14 @@ fn cfg2data(cfg_file: &str) -> Result<Data, ()> {
 async fn main() -> std::io::Result<()> {
     use clap::Arg;
 
+    let verstr = format!(
+        "{}-{}",
+        env!("CARGO_PKG_VERSION"),
+        env!("VERGEN_GIT_SHA_SHORT")
+    );
+    let ver: &str = &verstr;
     let matches = clap::App::new(env!("CARGO_PKG_NAME"))
-        .version(env!("CARGO_PKG_VERSION"))
+        .version(ver)
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .arg(
@@ -126,7 +132,7 @@ async fn main() -> std::io::Result<()> {
     let data = cfg2data(cfg_file).unwrap();
 
     if let Some(_m) = matches.subcommand_matches("srv") {
-        log::info!("kuso start(version {})", env!("CARGO_PKG_VERSION"));
+        log::info!("kuso start(version {})", ver);
 
         let data = Arc::new(Mutex::new(data));
         HttpServer::new(move || {
@@ -183,7 +189,12 @@ async fn index() -> Result<HttpResponse> {
     //let data = &data.lock().unwrap();
     //let context = &mut data.context;
     let mut context = tera::Context::new();
-    context.insert("version", env!("CARGO_PKG_VERSION"));
+    let verstr = format!(
+        "{}-{}",
+        env!("CARGO_PKG_VERSION"),
+        env!("VERGEN_GIT_SHA_SHORT")
+    );
+    context.insert("version", &verstr);
 
     let html = match TEMPLATES.render("index.html", &context) {
         Ok(s) => s,
@@ -203,7 +214,12 @@ async fn page_result(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> 
     let data = &data.lock().unwrap();
     //let context = &mut data.context;
     let mut context = tera::Context::new();
-    context.insert("version", env!("CARGO_PKG_VERSION"));
+    let verstr = format!(
+        "{}-{}",
+        env!("CARGO_PKG_VERSION"),
+        env!("VERGEN_GIT_SHA_SHORT")
+    );
+    context.insert("version", &verstr);
 
     if let Some(output) = &data.output {
         log::info!("output {:?}", output);
