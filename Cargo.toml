@@ -21,6 +21,7 @@ anyhow = "1.0.44"
 
 [dependencies]
 actix-web = "4.0.0-beta.9"
+bytes = "1.1.0"
 clap = "2.33.3"
 cloudflare = "0.8.7"
 domain = { version = "0.6.1", features = ["master"] }
