@@ -6,15 +6,12 @@ use lazy_static::lazy_static;
 
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, Result};
 
-use serde::{Deserialize};
+use serde::Deserialize;
 
-use cloudflare::endpoints::dns;
-use cloudflare::framework::{
-    async_api, async_api::ApiClient, auth::Credentials, response::ApiFailure, Environment,
-    HttpApiClientConfig,
-};
+use cloudflare::framework::{async_api, auth::Credentials, Environment, HttpApiClientConfig};
 
 mod api;
+mod dns;
 mod subdomain;
 
 #[derive(Deserialize)]
@@ -159,7 +156,7 @@ async fn main() -> std::io::Result<()> {
     } else if let Some(_m) = matches.subcommand_matches("list") {
         log::info!("list");
 
-        let params = dns::ListDnsRecordsParams {
+        let params = cloudflare::endpoints::dns::ListDnsRecordsParams {
             record_type: None,
             name: None,
             page: None,
@@ -168,7 +165,7 @@ async fn main() -> std::io::Result<()> {
             direction: None,
             search_match: None,
         };
-        let _ = list_records(&data.api_client, &data.zone_identifier, params).await;
+        let _ = subdomain::list_records(&data.api_client, &data.zone_identifier, params).await;
     }
 
     Ok(())
@@ -245,54 +242,4 @@ async fn page_result(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> 
     Ok(HttpResponse::Ok()
         .content_type("text/html; chaset=utf-8")
         .body(html))
-}
-
-async fn create_record(
-    api_client: &async_api::Client,
-    zone_identifier: &str,
-    params: dns::CreateDnsRecordParams<'_>,
-) {
-    let zone_identifier = zone_identifier;
-    let cdr = dns::CreateDnsRecord {
-        zone_identifier,
-        params,
-    };
-    let response = api_client.request(&cdr).await;
-    match response {
-        Ok(success) => log::info!("success: {:?}", success),
-        Err(e) => match e {
-            ApiFailure::Error(status, err) => {
-                log::error!("HTTP {}: {:?}", status, err);
-            }
-            ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
-        },
-    }
-}
-
-async fn list_records(
-    api_client: &async_api::Client,
-    zone_identifier: &str,
-    params: dns::ListDnsRecordsParams,
-) {
-    let ldr = dns::ListDnsRecords {
-        zone_identifier,
-        params,
-    };
-
-    let response = api_client.request(&ldr).await;
-    match response {
-        Ok(success) => {
-            //log::info!("success: {:?}", success);
-            let record: Vec<dns::DnsRecord> = success.result;
-            for r in record {
-                log::info!("{:?}", r);
-            }
-        }
-        Err(e) => match e {
-            ApiFailure::Error(status, err) => {
-                log::error!("HTTP {}: {:?}", status, err);
-            }
-            ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
-        },
-    }
 }
