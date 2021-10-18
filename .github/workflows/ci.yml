@@ -7,7 +7,7 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain'
-      - '.github/workflows/rust.yml'
+      - '.github/workflows/ci.yml'
 
 jobs:
   rust:
