@@ -2,12 +2,24 @@
 //use domain::master::entry::MasterRecord;
 use domain::rdata::MasterRecordData;
 
+use cloudflare::endpoints::dns;
 use cloudflare::endpoints::dns::CreateDnsRecordParams;
+use cloudflare::framework::async_api;
+use cloudflare::framework::{async_api::ApiClient, response::ApiFailure};
 
 type RecordData<'a> = MasterRecordData<bytes::Bytes, &'a str>;
 type RecordImpl<'a> = domain::base::record::Record<&'a str, RecordData<'a>>;
 
 pub struct Record<'a>(RecordImpl<'a>);
+
+pub enum ProviderClient {
+    Cloudflare(CloudflareClient),
+}
+
+pub struct CloudflareClient {
+    client: cloudflare::framework::async_api::Client,
+    zone_identifier: String,
+}
 
 pub fn cname<'a>(rname: &'a str, cname: &'a str) -> Record<'a> {
     let class = domain::base::iana::class::Class::In; // internet
@@ -23,6 +35,56 @@ pub fn txt<'a>(rname: &'a str, txt: &'a str) -> Record<'a> {
     let rd: RecordData = txt.into();
     let record = domain::base::record::Record::new(rname, class, 0, rd);
     record.into()
+}
+
+pub async fn create_record(
+    api_client: &async_api::Client,
+    zone_identifier: &str,
+    params: dns::CreateDnsRecordParams<'_>,
+) {
+    let zone_identifier = zone_identifier;
+    let cdr = dns::CreateDnsRecord {
+        zone_identifier,
+        params,
+    };
+    let response = api_client.request(&cdr).await;
+    match response {
+        Ok(success) => log::info!("success: {:?}", success),
+        Err(e) => match e {
+            ApiFailure::Error(status, err) => {
+                log::error!("HTTP {}: {:?}", status, err);
+            }
+            ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
+        },
+    }
+}
+
+pub async fn list_records(
+    api_client: &async_api::Client,
+    zone_identifier: &str,
+    params: dns::ListDnsRecordsParams,
+) {
+    let ldr = dns::ListDnsRecords {
+        zone_identifier,
+        params,
+    };
+
+    let response = api_client.request(&ldr).await;
+    match response {
+        Ok(success) => {
+            //log::info!("success: {:?}", success);
+            let record: Vec<dns::DnsRecord> = success.result;
+            for r in record {
+                log::info!("{:?}", r);
+            }
+        }
+        Err(e) => match e {
+            ApiFailure::Error(status, err) => {
+                log::error!("HTTP {}: {:?}", status, err);
+            }
+            ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
+        },
+    }
 }
 
 impl<'a> From<RecordImpl<'a>> for Record<'a> {

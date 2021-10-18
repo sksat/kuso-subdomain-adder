@@ -165,7 +165,7 @@ async fn main() -> std::io::Result<()> {
             direction: None,
             search_match: None,
         };
-        let _ = subdomain::list_records(&data.api_client, &data.zone_identifier, params).await;
+        let _ = dns::list_records(&data.api_client, &data.zone_identifier, params).await;
     }
 
     Ok(())
