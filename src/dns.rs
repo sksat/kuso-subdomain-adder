@@ -17,7 +17,7 @@ pub fn cname<'a>(rname: &'a str, cname: &'a str) -> Record<'a> {
     record.into()
 }
 
-pub fn txt<'a>(rname: &'a str, txt: String) -> Record<'a> {
+pub fn txt<'a>(rname: &'a str, txt: &'a str) -> Record<'a> {
     let class = domain::base::iana::class::Class::In; // internet
     let txt = domain::rdata::Txt::from_slice(txt.as_bytes()).unwrap();
     let rd: RecordData = txt.into();
@@ -41,7 +41,12 @@ impl<'a> From<Record<'a>> for cloudflare::endpoints::dns::DnsContent {
             RecordData::Cname(cn) => DnsContent::CNAME {
                 content: cn.cname().to_string(),
             },
-            _ => unreachable!(),
+            RecordData::Txt(txt) => DnsContent::TXT {
+                content: std::str::from_utf8(txt.text::<bytes::Bytes>().unwrap().as_ref())
+                    .unwrap()
+                    .to_string(),
+            },
+            _ => todo!(),
         }
     }
 }
@@ -66,11 +71,29 @@ impl<'a> From<Record<'a>> for CreateDnsRecordParams<'a> {
 
 #[test]
 fn convert_record() {
+    use cloudflare::endpoints::dns::DnsContent;
     let class = domain::base::iana::class::Class::In; // internet
-    let cname = domain::rdata::rfc1035::Cname::new("cname");
+
+    let cname = domain::rdata::Cname::new("cname");
     let rd: RecordData = cname.into();
-    let record = domain::base::record::Record::new("rname", class, 0, rd);
+    let record = domain::base::record::Record::new("rcname", class, 0, rd);
     let record: Record = record.into();
     let params: CreateDnsRecordParams = record.into();
+
     println!("{:?}", params);
+    assert_eq!(params.name, "rcname");
+    assert!(
+        matches!(params.content, DnsContent::CNAME { content } if content == "cname".to_string())
+    );
+
+    let txt = "txt".to_string();
+    let txt = domain::rdata::Txt::from_slice(txt.as_bytes()).unwrap();
+    let rd: RecordData = txt.into();
+    let record = domain::base::record::Record::new("rtname", class, 0, rd);
+    let record: Record = record.into();
+    let params: CreateDnsRecordParams = record.into();
+
+    println!("{:?}", params);
+    assert_eq!(params.name, "rtname");
+    assert!(matches!(params.content, DnsContent::TXT{ content } if content == "txt".to_string()));
 }

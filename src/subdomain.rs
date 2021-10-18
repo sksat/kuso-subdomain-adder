@@ -31,7 +31,7 @@ pub async fn add(
     let record = crate::dns::cname(&subdomain, content);
     create_record(api_client, zone_identifier, record.into()).await;
 
-    let content = target_url.to_string();
+    let content = target_url;
     log::info!("add TXT: {}", content);
     let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
     let record = crate::dns::txt(&txt_name, content);
