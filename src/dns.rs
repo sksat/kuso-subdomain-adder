@@ -5,10 +5,12 @@ use domain::rdata::MasterRecordData;
 use cloudflare::endpoints::dns::CreateDnsRecordParams;
 
 type RecordData<'a> = MasterRecordData<&'a str, &'a str>;
-struct Record<'a>(domain::base::record::Record<&'a str, RecordData<'a>>);
+type RecordImpl<'a> = domain::base::record::Record<&'a str, RecordData<'a>>;
 
-impl<'a> From<domain::base::record::Record<&'a str, RecordData<'a>>> for Record<'a> {
-    fn from(r: domain::base::record::Record<&'a str, RecordData<'a>>) -> Record<'a> {
+struct Record<'a>(RecordImpl<'a>);
+
+impl<'a> From<RecordImpl<'a>> for Record<'a> {
+    fn from(r: RecordImpl<'a>) -> Record<'a> {
         Record(r)
     }
 }
@@ -33,7 +35,7 @@ impl<'a> From<Record<'a>> for CreateDnsRecordParams<'a> {
         let ttl = r.0.ttl();
         let ttl = if ttl == 0 { None } else { Some(ttl) };
 
-        let name = r.0.owner().clone();
+        let name = <&str>::clone(r.0.owner());
         let content = r.into();
 
         CreateDnsRecordParams {
