@@ -49,6 +49,6 @@ jobs:
         with:
           command: test
 
-      - name: uses: orf/cargo-bloat-action@v1.0.0
+      - uses: orf/cargo-bloat-action@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
