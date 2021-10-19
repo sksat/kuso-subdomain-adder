@@ -1,0 +1,20 @@
+name: Daily RUSTSEC Vulnerability Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      hoge:
+        description: 'hoge'
+        required: true
+        default: 'hoge'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/audit-check@v1.2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
