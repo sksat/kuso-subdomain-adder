@@ -48,3 +48,8 @@ jobs:
         uses: actions-rs/cargo@v1.0.3
         with:
           command: test
+
+      - name: cargo-tapaulin
+        uses: actions-rs/tarpaulin@v0.1.0
+        with:
+          version: 'latest'
