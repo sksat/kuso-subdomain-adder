@@ -48,15 +48,3 @@ jobs:
         uses: actions-rs/cargo@v1.0.3
         with:
           command: test
-
-      - name: install cargo-tarpaulin
-        uses: actions-rs/install@v0.1.2
-        with:
-          crate: cargo-tarpaulin
-          version: latest
-          use-tool-cache: true
-
-      - run: cargo tarpaulin
-
-      - name: upload tarpaulin result to codecov.io
-        uses: codecov/codecov-action@v2.1.0
