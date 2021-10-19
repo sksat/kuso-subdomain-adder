@@ -19,6 +19,16 @@ pub enum ProviderClient {
 }
 
 #[async_trait]
+impl ProviderClientTrait for ProviderClient {
+    async fn create_record(&self, record: Record<'_>) {
+        match &self {
+            ProviderClient::Cloudflare(cf) => cf.create_record(record).await,
+            _ => todo!(),
+        }
+    }
+}
+
+#[async_trait]
 pub trait ProviderClientTrait {
     async fn create_record(&self, record: Record<'_>);
 
