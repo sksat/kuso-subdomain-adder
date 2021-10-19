@@ -9,6 +9,9 @@ on:
       - 'rust-toolchain'
       - '.github/workflows/ci.yml'
 
+env:
+  CARGO_INCREMENTAL: 0
+
 jobs:
   rust:
     runs-on: ubuntu-latest
