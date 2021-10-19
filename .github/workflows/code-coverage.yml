@@ -1,0 +1,30 @@
+name: Code Coverage
+
+on:
+  push:
+    branches:
+      - master
+      - code-coverage
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+
+      - name: install cargo-tarpaulin
+        uses: actions-rs/install@v0.1.2
+        with:
+          crate: cargo-tarpaulin
+          version: latest
+          use-tool-cache: true
+
+      - run: cargo tarpaulin
+
+      - name: upload tarpaulin result to codecov.io
+        uses: codecov/codecov-action@v2.1.0
