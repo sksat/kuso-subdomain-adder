@@ -1,4 +1,4 @@
-name: validate docker-compose.yml
+name: validate / docker-compose.yml
 
 on:
   pull_request:

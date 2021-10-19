@@ -1,4 +1,4 @@
-name: validate renovate
+name: validate / renovate.json
 
 on:
   pull_request:
