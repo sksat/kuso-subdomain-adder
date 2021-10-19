@@ -2,8 +2,8 @@
 
 ![](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/build-image.yml/badge.svg?branch=master)
 ![](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/ci.yml/badge.svg?branch=master)
-[![Daily Container Image Vulnerability Scan](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/trivy-scan.yml/badge.svg?branch=master)](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/trivy-scan.yml)
 [![codecov](https://codecov.io/gh/sksat/kuso-subdomain-adder/branch/master/graph/badge.svg?token=KQ5QQ5F97T)](https://codecov.io/gh/sksat/kuso-subdomain-adder)
+[![Daily Container Image Vulnerability Scan](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/trivy-scan.yml/badge.svg?branch=master)](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/trivy-scan.yml)
 
 A ***super-easy*** kuso subdomain utility for [telekasu](https://teleka.su) using [kuso-domains-redirector](https://github.com/KOBA789/kuso-domains-redirector) and Cloudflare API.
 
