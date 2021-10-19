@@ -48,7 +48,3 @@ jobs:
         uses: actions-rs/cargo@v1.0.3
         with:
           command: test
-
-      - uses: orf/cargo-bloat-action@v1.2.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
