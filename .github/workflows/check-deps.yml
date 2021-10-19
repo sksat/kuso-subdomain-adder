@@ -1,0 +1,27 @@
+name: check-deps
+
+on:
+  pull_request:
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain'
+      - '.github/workflows/check-deps.yml'
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+
+      - uses: orf/cargo-bloat-action@v1.2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
