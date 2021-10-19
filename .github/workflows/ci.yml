@@ -50,6 +50,9 @@ jobs:
           command: test
 
       - name: install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
+        uses: actions-rs/install@v0.1.2
+        with:
+          crate: cargo-tarpaulin
+          version: latest
 
       - run: cargo-tarpaulin
