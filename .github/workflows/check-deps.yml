@@ -1,6 +1,9 @@
 name: check-deps
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     paths:
       - 'Cargo.toml'
