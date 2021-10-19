@@ -1,13 +1,20 @@
 name: CI
 
 on:
-  push:
+  pull_request:
     paths:
       - 'src/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain'
       - '.github/workflows/ci.yml'
+  push:
+    branches:
+      - master
+      - dev-*
+
+env:
+  CARGO_INCREMENTAL: 0
 
 jobs:
   rust:
@@ -22,11 +29,20 @@ jobs:
           components: clippy
           override: true
 
+      - name: cache dependencies
+        uses: Swatinem/rust-cache@v1.3.0
+
       - name: clippy check
         uses: actions-rs/clippy-check@v1.0.7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
+
+      - name: compile for unit test
+        uses: actions-rs/cargo@v1.0.3
+        with:
+          command: test
+          args: --no-run --locked
 
       - name: unit test
         uses: actions-rs/cargo@v1.0.3
