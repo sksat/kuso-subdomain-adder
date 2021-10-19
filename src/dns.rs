@@ -31,8 +31,6 @@ impl ProviderClientTrait for ProviderClient {
 #[async_trait]
 pub trait ProviderClientTrait {
     async fn create_record(&self, record: Record<'_>);
-
-    //TODO: これlistどうすんの？
 }
 
 pub struct CloudflareClient {
@@ -79,6 +77,8 @@ pub fn txt<'a>(rname: &'a str, txt: &'a str) -> Record<'a> {
     record.into()
 }
 
+#[deprecated(since = "0.4.0", note = "list subcommand removed")]
+#[allow(dead_code)]
 pub async fn list_records(
     api_client: &async_api::Client,
     zone_identifier: &str,

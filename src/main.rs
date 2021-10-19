@@ -72,7 +72,6 @@ async fn main() -> std::io::Result<()> {
                 .arg(Arg::with_name("subdomain").required(true).help("subdomain"))
                 .arg(Arg::with_name("target").required(true).help("target URL")),
         )
-        .subcommand(clap::SubCommand::with_name("list"))
         .get_matches();
 
     let debug_level = if matches.is_present("debug") {
@@ -110,24 +109,6 @@ async fn main() -> std::io::Result<()> {
         let result_sd = subdomain::add(&data.api_client, subdomain, target_url).await;
 
         log::info!("result URL: http://{}.teleka.su", result_sd);
-    } else if let Some(_m) = matches.subcommand_matches("list") {
-        log::info!("list");
-
-        let params = cloudflare::endpoints::dns::ListDnsRecordsParams {
-            record_type: None,
-            name: None,
-            page: None,
-            per_page: None,
-            order: None,
-            direction: None,
-            search_match: None,
-        };
-        // TODO: remove
-        let cf_client = match &data.api_client {
-            crate::dns::ProviderClient::Cloudflare(cf) => cf,
-            _ => unreachable!(),
-        };
-        let _ = dns::list_records(&cf_client.client, &cf_client.zone_identifier, params).await;
     }
 
     Ok(())
