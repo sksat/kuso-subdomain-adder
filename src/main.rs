@@ -1,24 +1,13 @@
-use std::fs;
-use std::io::Read;
 use std::sync::*;
 
 use lazy_static::lazy_static;
 
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, Result};
 
-use serde::Deserialize;
-
-use cloudflare::framework::{async_api, auth::Credentials, Environment, HttpApiClientConfig};
-
 mod api;
+mod config;
 mod dns;
 mod subdomain;
-
-#[derive(Deserialize)]
-struct Config {
-    token: String,
-    zone_identifier: String,
-}
 
 #[derive(Debug)]
 struct Output {
@@ -26,7 +15,7 @@ struct Output {
     url_visual: String,
 }
 
-struct Data {
+pub struct Data {
     api_client: dns::ProviderClient,
     subdomain: Option<subdomain::Subdomain>,
     output: Option<Output>,
@@ -44,35 +33,6 @@ lazy_static! {
         tera.autoescape_on(vec!["html"]);
         tera
     };
-}
-
-fn cfg2data(cfg_file: &str) -> Result<Data, ()> {
-    let mut cfg_file = fs::File::open(cfg_file).unwrap();
-    let mut config = String::new();
-    cfg_file.read_to_string(&mut config).unwrap();
-    let config: Config = toml::from_str(&config).unwrap();
-
-    let credentials = Credentials::UserAuthToken {
-        token: config.token,
-    };
-
-    let cf_client = async_api::Client::new(
-        credentials,
-        HttpApiClientConfig::default(),
-        Environment::Production,
-    )
-    .unwrap();
-    let cf_client = dns::CloudflareClient {
-        client: cf_client,
-        zone_identifier: config.zone_identifier,
-    };
-    let api_client = dns::ProviderClient::Cloudflare(cf_client);
-
-    Ok(Data {
-        api_client,
-        subdomain: None,
-        output: None,
-    })
 }
 
 #[actix_web::main]
@@ -127,7 +87,7 @@ async fn main() -> std::io::Result<()> {
     //println!("{}", punycode::encode("バーチャル六畳半").unwrap());
 
     let cfg_file = matches.value_of("config").unwrap();
-    let data = cfg2data(cfg_file).unwrap();
+    let data = config::cfg2data(cfg_file).unwrap();
 
     if let Some(_m) = matches.subcommand_matches("srv") {
         log::info!("kuso version {}", ver);
