@@ -2,6 +2,8 @@
 //use domain::master::entry::MasterRecord;
 use domain::rdata::MasterRecordData;
 
+use async_trait::async_trait;
+
 use cloudflare::endpoints::dns;
 use cloudflare::endpoints::dns::CreateDnsRecordParams;
 use cloudflare::framework::async_api;
@@ -16,9 +18,39 @@ pub enum ProviderClient {
     Cloudflare(CloudflareClient),
 }
 
+#[async_trait]
+pub trait ProviderClientTrait {
+    async fn create_record(&self, record: Record<'_>);
+
+    //TODO: これlistどうすんの？
+}
+
 pub struct CloudflareClient {
     pub client: cloudflare::framework::async_api::Client,
     pub zone_identifier: String,
+}
+
+#[async_trait]
+impl ProviderClientTrait for CloudflareClient {
+    async fn create_record(&self, record: Record<'_>) {
+        let zone_identifier = &self.zone_identifier;
+        let params = record.into();
+
+        let cdr = dns::CreateDnsRecord {
+            zone_identifier,
+            params,
+        };
+        let response = &self.client.request(&cdr).await;
+        match response {
+            Ok(success) => log::info!("success: {:?}", success),
+            Err(e) => match e {
+                ApiFailure::Error(status, err) => {
+                    log::error!("HTTP {}: {:?}", status, err);
+                }
+                ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
+            },
+        }
+    }
 }
 
 pub fn cname<'a>(rname: &'a str, cname: &'a str) -> Record<'a> {
@@ -35,28 +67,6 @@ pub fn txt<'a>(rname: &'a str, txt: &'a str) -> Record<'a> {
     let rd: RecordData = txt.into();
     let record = domain::base::record::Record::new(rname, class, 0, rd);
     record.into()
-}
-
-pub async fn create_record(
-    api_client: &async_api::Client,
-    zone_identifier: &str,
-    params: dns::CreateDnsRecordParams<'_>,
-) {
-    let zone_identifier = zone_identifier;
-    let cdr = dns::CreateDnsRecord {
-        zone_identifier,
-        params,
-    };
-    let response = api_client.request(&cdr).await;
-    match response {
-        Ok(success) => log::info!("success: {:?}", success),
-        Err(e) => match e {
-            ApiFailure::Error(status, err) => {
-                log::error!("HTTP {}: {:?}", status, err);
-            }
-            ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
-        },
-    }
 }
 
 pub async fn list_records(

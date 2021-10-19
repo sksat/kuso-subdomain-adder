@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::dns::ProviderClientTrait;
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Subdomain {
     pub subdomain: String,
@@ -29,13 +31,13 @@ pub async fn add(
     let content = "redirect.kuso.domains";
     log::info!("add CNAME: {}", content);
     let record = crate::dns::cname(&subdomain, content);
-    crate::dns::create_record(&cf_client.client, &cf_client.zone_identifier, record.into()).await;
+    cf_client.create_record(record.into()).await;
 
     let content = target_url;
     log::info!("add TXT: {}", content);
     let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
     let record = crate::dns::txt(&txt_name, content);
-    crate::dns::create_record(&cf_client.client, &cf_client.zone_identifier, record.into()).await;
+    cf_client.create_record(record.into()).await;
 
     subdomain
 }
