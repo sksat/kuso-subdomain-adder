@@ -56,7 +56,7 @@ jobs:
           version: latest
           use-tool-cache: true
 
-      - run: cargo-tarpaulin
+      - run: cargo tarpaulin
 
       - name: upload tarpaulin result to codecov.io
         uses: codecov/codecov-action@v2.1.0
