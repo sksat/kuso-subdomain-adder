@@ -42,7 +42,7 @@ pub async fn add(
 }
 
 pub async fn delete(api_client: &crate::dns::ProviderClient, subdomain: &str) {
-    let rname = str2punycode_str(subdomain);
+    let rname = str2punycode_str(subdomain) + ".teleka.su";
     let txt_name = "_kuso-domains-to.".to_string() + &rname;
 
     api_client.delete_record(&rname).await;

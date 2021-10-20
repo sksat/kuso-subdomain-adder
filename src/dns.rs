@@ -66,14 +66,36 @@ impl ProviderClientTrait for CloudflareClient {
         }
     }
 
-    async fn delete_record(&self, record_name: &str) {
+    async fn delete_record(&self, name: &str) {
         let zone_identifier = &self.zone_identifier;
 
-        let identifier = todo!(); // TODO: identifier is not record name!!!!
+        let name = Some(name.to_string());
+        let lparam = dns::ListDnsRecordsParams {
+            record_type: None,
+            name,
+            page: None,
+            per_page: None,
+            order: None,
+            direction: None,
+            search_match: None,
+        };
+        let ldr = dns::ListDnsRecords {
+            zone_identifier,
+            params: lparam,
+        };
+        let res = &self.client.request(&ldr).await;
+        let res = &res.as_ref().unwrap();
+        let records = &res.result;
+        if records.is_empty() {
+            // TODO: return Err
+            return;
+        }
+        assert_eq!(records.len(), 1);
+        let r = records.into_iter().nth(0).unwrap();
 
         let ddr = dns::DeleteDnsRecord {
             zone_identifier,
-            identifier,
+            identifier: &r.id,
         };
         log::info!("{:?}", ddr);
         let res = &self.client.request(&ddr).await;
