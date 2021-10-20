@@ -7,6 +7,10 @@ build = "build.rs"
 
 license = "MIT"
 
+readme = "README.md"
+description = "A super-easy kuso subdomain utility for telekasu using kuso-domains-redirector and Cloudflare API"
+repository = "https://github.com/sksat/kuso-subdomain-adder"
+
 [profile.dev]
 # speed up build
 debug = 0
