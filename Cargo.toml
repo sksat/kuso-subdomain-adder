@@ -20,7 +20,7 @@ incremental = true
 debug = 0
 
 [build-dependencies]
-vergen = { version = "5.1.15", default-features = false, features = ["build", "cargo", "git", "rustc"] }
+vergen = { version = "5.1.16", default-features = false, features = ["build", "cargo", "git", "rustc"] }
 anyhow = "1.0.44"
 
 [dependencies]
