@@ -72,6 +72,11 @@ async fn main() -> std::io::Result<()> {
                 .arg(Arg::with_name("subdomain").required(true).help("subdomain"))
                 .arg(Arg::with_name("target").required(true).help("target URL")),
         )
+        .subcommand(
+            clap::SubCommand::with_name("delete")
+                .about("delete kuso subdomain")
+                .arg(Arg::with_name("subdomain").required(true).help("subdomain")),
+        )
         .get_matches();
 
     let debug_level = if matches.is_present("debug") {
@@ -109,6 +114,11 @@ async fn main() -> std::io::Result<()> {
         let result_sd = subdomain::add(&data.api_client, subdomain, target_url).await;
 
         log::info!("result URL: http://{}.teleka.su", result_sd);
+    } else if let Some(m) = matches.subcommand_matches("delete") {
+        log::info!("delete subdomain manually");
+
+        let subdomain = m.value_of("subdomain").unwrap();
+        subdomain::delete(&data.api_client, subdomain).await;
     }
 
     Ok(())

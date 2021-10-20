@@ -9,19 +9,23 @@ pub struct Subdomain {
     pub url: String,
 }
 
+fn str2punycode_str(s: &str) -> String {
+    if s.chars().all(|c| c.is_ascii_alphanumeric()) {
+        log::info!("subdomain: {}", s);
+        s.to_string()
+    } else {
+        let pcode = punycode::encode(s).unwrap();
+        log::info!("subdomain: {} -> {}", &s, &pcode);
+        "xn--".to_string() + &pcode
+    }
+}
+
 pub async fn add(
     api_client: &crate::dns::ProviderClient,
     subdomain: &str,
     target_url: &str,
 ) -> String {
-    let subdomain = if subdomain.chars().all(|c| c.is_ascii_alphanumeric()) {
-        log::info!("subdomain: {}", subdomain);
-        subdomain.to_string()
-    } else {
-        let pcode = punycode::encode(subdomain).unwrap();
-        log::info!("subdomain: {} -> {}", &subdomain, &pcode);
-        "xn--".to_string() + &pcode
-    };
+    let subdomain = str2punycode_str(subdomain);
 
     let content = "redirect.kuso.domains";
     log::info!("add CNAME: {}", content);
@@ -35,4 +39,12 @@ pub async fn add(
     api_client.create_record(record.into()).await;
 
     subdomain
+}
+
+pub async fn delete(api_client: &crate::dns::ProviderClient, subdomain: &str) {
+    let rname = str2punycode_str(subdomain);
+    let txt_name = "_kuso-domains-to.".to_string() + &rname;
+
+    api_client.delete_record(&rname).await;
+    api_client.delete_record(&txt_name).await;
 }

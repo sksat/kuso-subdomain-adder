@@ -23,7 +23,12 @@ impl ProviderClientTrait for ProviderClient {
     async fn create_record(&self, record: Record<'_>) {
         match &self {
             ProviderClient::Cloudflare(cf) => cf.create_record(record).await,
-            _ => todo!(),
+        }
+    }
+
+    async fn delete_record(&self, rname: &str) {
+        match &self {
+            ProviderClient::Cloudflare(cf) => cf.delete_record(rname).await,
         }
     }
 }
@@ -31,6 +36,7 @@ impl ProviderClientTrait for ProviderClient {
 #[async_trait]
 pub trait ProviderClientTrait {
     async fn create_record(&self, record: Record<'_>);
+    async fn delete_record(&self, rname: &str);
 }
 
 pub struct CloudflareClient {
@@ -50,6 +56,29 @@ impl ProviderClientTrait for CloudflareClient {
         };
         let response = &self.client.request(&cdr).await;
         match response {
+            Ok(success) => log::info!("success: {:?}", success),
+            Err(e) => match e {
+                ApiFailure::Error(status, err) => {
+                    log::error!("HTTP {}: {:?}", status, err);
+                }
+                ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
+            },
+        }
+    }
+
+    async fn delete_record(&self, record_name: &str) {
+        let zone_identifier = &self.zone_identifier;
+
+        let identifier = todo!(); // TODO: identifier is not record name!!!!
+
+        let ddr = dns::DeleteDnsRecord {
+            zone_identifier,
+            identifier,
+        };
+        log::info!("{:?}", ddr);
+        let res = &self.client.request(&ddr).await;
+
+        match res {
             Ok(success) => log::info!("success: {:?}", success),
             Err(e) => match e {
                 ApiFailure::Error(status, err) => {
