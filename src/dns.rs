@@ -14,6 +14,12 @@ type RecordImpl<'a> = domain::base::record::Record<&'a str, RecordData<'a>>;
 
 pub struct Record<'a>(RecordImpl<'a>);
 
+#[async_trait]
+pub trait ProviderClientTrait {
+    async fn create_record(&self, record: Record<'_>);
+    async fn delete_record(&self, rname: &str);
+}
+
 pub enum ProviderClient {
     Cloudflare(CloudflareClient),
 }
@@ -31,12 +37,6 @@ impl ProviderClientTrait for ProviderClient {
             ProviderClient::Cloudflare(cf) => cf.delete_record(rname).await,
         }
     }
-}
-
-#[async_trait]
-pub trait ProviderClientTrait {
-    async fn create_record(&self, record: Record<'_>);
-    async fn delete_record(&self, rname: &str);
 }
 
 pub struct CloudflareClient {
