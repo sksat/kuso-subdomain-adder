@@ -1,30 +1,13 @@
-use std::fs;
-use std::io::Read;
 use std::sync::*;
 
 use lazy_static::lazy_static;
 
-use actix_web::{middleware, post, web, App, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{middleware, web, App, HttpResponse, HttpServer, Result};
 
-use serde::{Deserialize, Serialize};
-
-use cloudflare::endpoints::dns;
-use cloudflare::framework::{
-    async_api, async_api::ApiClient, auth::Credentials, response::ApiFailure, Environment,
-    HttpApiClientConfig,
-};
-
-#[derive(Deserialize)]
-struct Config {
-    token: String,
-    zone_identifier: String,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Subdomain {
-    subdomain: String,
-    url: String,
-}
+mod api;
+mod config;
+mod dns;
+mod subdomain;
 
 #[derive(Debug)]
 struct Output {
@@ -32,10 +15,9 @@ struct Output {
     url_visual: String,
 }
 
-struct Data {
-    api_client: async_api::Client,
-    zone_identifier: String,
-    subdomain: Option<Subdomain>,
+pub struct Data {
+    api_client: dns::ProviderClient,
+    subdomain: Option<subdomain::Subdomain>,
     output: Option<Output>,
 }
 
@@ -51,31 +33,6 @@ lazy_static! {
         tera.autoescape_on(vec!["html"]);
         tera
     };
-}
-
-fn cfg2data(cfg_file: &str) -> Result<Data, ()> {
-    let mut cfg_file = fs::File::open(cfg_file).unwrap();
-    let mut config = String::new();
-    cfg_file.read_to_string(&mut config).unwrap();
-    let config: Config = toml::from_str(&config).unwrap();
-
-    let credentials = Credentials::UserAuthToken {
-        token: config.token,
-    };
-
-    let api_client = async_api::Client::new(
-        credentials,
-        HttpApiClientConfig::default(),
-        Environment::Production,
-    )
-    .unwrap();
-
-    Ok(Data {
-        api_client,
-        zone_identifier: config.zone_identifier,
-        subdomain: None,
-        output: None,
-    })
 }
 
 #[actix_web::main]
@@ -115,7 +72,11 @@ async fn main() -> std::io::Result<()> {
                 .arg(Arg::with_name("subdomain").required(true).help("subdomain"))
                 .arg(Arg::with_name("target").required(true).help("target URL")),
         )
-        .subcommand(clap::SubCommand::with_name("list"))
+        .subcommand(
+            clap::SubCommand::with_name("delete")
+                .about("delete kuso subdomain")
+                .arg(Arg::with_name("subdomain").required(true).help("subdomain")),
+        )
         .get_matches();
 
     let debug_level = if matches.is_present("debug") {
@@ -130,7 +91,7 @@ async fn main() -> std::io::Result<()> {
     //println!("{}", punycode::encode("バーチャル六畳半").unwrap());
 
     let cfg_file = matches.value_of("config").unwrap();
-    let data = cfg2data(cfg_file).unwrap();
+    let data = config::cfg2data(cfg_file).unwrap();
 
     if let Some(_m) = matches.subcommand_matches("srv") {
         log::info!("kuso version {}", ver);
@@ -150,28 +111,14 @@ async fn main() -> std::io::Result<()> {
 
         let subdomain = m.value_of("subdomain").unwrap();
         let target_url = m.value_of("target").unwrap();
-        let result_sd = add_subdomain(
-            &data.api_client,
-            &data.zone_identifier,
-            subdomain,
-            target_url,
-        )
-        .await;
+        let result_sd = subdomain::add(&data.api_client, subdomain, target_url).await;
 
         log::info!("result URL: http://{}.teleka.su", result_sd);
-    } else if let Some(_m) = matches.subcommand_matches("list") {
-        log::info!("list");
+    } else if let Some(m) = matches.subcommand_matches("delete") {
+        log::info!("delete subdomain manually");
 
-        let params = dns::ListDnsRecordsParams {
-            record_type: None,
-            name: None,
-            page: None,
-            per_page: None,
-            order: None,
-            direction: None,
-            search_match: None,
-        };
-        let _ = list_records(&data.api_client, &data.zone_identifier, params).await;
+        let subdomain = m.value_of("subdomain").unwrap();
+        subdomain::delete(&data.api_client, subdomain).await;
     }
 
     Ok(())
@@ -182,7 +129,7 @@ fn app_config(cfg: &mut web::ServiceConfig) {
         web::scope("")
             .service(web::resource("/").route(web::get().to(index)))
             .service(web::resource("/result").route(web::get().to(page_result)))
-            .service(api_add_subdomain),
+            .service(api::add_subdomain),
     );
 }
 
@@ -248,136 +195,4 @@ async fn page_result(data: web::Data<Arc<Mutex<Data>>>) -> Result<HttpResponse> 
     Ok(HttpResponse::Ok()
         .content_type("text/html; chaset=utf-8")
         .body(html))
-}
-
-#[post("/api/add_subdomain")]
-async fn api_add_subdomain(
-    data: web::Data<Arc<Mutex<Data>>>,
-    params: web::Form<Subdomain>,
-) -> impl Responder {
-    log::info!("[API] add_subdomain");
-
-    let params = params.into_inner();
-
-    let data = data.lock();
-    if let Err(_e) = data {
-        return HttpResponse::Conflict().body("kowareta");
-    }
-
-    let data = &mut data.unwrap();
-    data.subdomain = Some(params.clone());
-
-    let subdomain = add_subdomain(
-        &data.api_client,
-        &data.zone_identifier,
-        &params.subdomain,
-        &params.url,
-    )
-    .await;
-
-    // final URL
-    let protocol = "http://".to_string();
-    let domain = ".teleka.su";
-    let url = protocol.clone() + &subdomain + domain;
-    let url_visual = protocol + &params.subdomain + domain;
-    log::info!("URL: {}", url);
-
-    //let data = &mut data.lock().unwrap();
-    let out = Output { url, url_visual };
-    data.output = Some(out);
-
-    HttpResponse::Found()
-        .append_header(("Location", "/result"))
-        .finish()
-}
-
-async fn add_subdomain(
-    api_client: &async_api::Client,
-    zone_identifier: &str,
-    subdomain: &str,
-    target_url: &str,
-) -> String {
-    let subdomain = if subdomain.chars().all(|c| c.is_ascii_alphanumeric()) {
-        log::info!("subdomain: {}", subdomain);
-        subdomain.to_string()
-    } else {
-        let pcode = punycode::encode(subdomain).unwrap();
-        log::info!("subdomain: {} -> {}", &subdomain, &pcode);
-        "xn--".to_string() + &pcode
-    };
-
-    let content = "redirect.kuso.domains".to_string();
-    log::info!("add CNAME: {}", content);
-    let record = dns::CreateDnsRecordParams {
-        name: &subdomain,
-        content: dns::DnsContent::CNAME { content },
-        priority: None,
-        proxied: None,
-        ttl: None,
-    };
-    create_record(api_client, zone_identifier, record).await;
-
-    let content = target_url.to_string();
-    log::info!("add TXT: {}", content);
-    let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
-    let record = dns::CreateDnsRecordParams {
-        name: &txt_name,
-        content: dns::DnsContent::TXT { content },
-        priority: None,
-        proxied: None,
-        ttl: None,
-    };
-    create_record(api_client, zone_identifier, record).await;
-
-    subdomain
-}
-
-async fn create_record(
-    api_client: &async_api::Client,
-    zone_identifier: &str,
-    params: dns::CreateDnsRecordParams<'_>,
-) {
-    let zone_identifier = zone_identifier;
-    let cdr = dns::CreateDnsRecord {
-        zone_identifier,
-        params,
-    };
-    let response = api_client.request(&cdr).await;
-    match response {
-        Ok(success) => log::info!("success: {:?}", success),
-        Err(e) => match e {
-            ApiFailure::Error(status, err) => {
-                log::error!("HTTP {}: {:?}", status, err);
-            }
-            ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
-        },
-    }
-}
-
-async fn list_records(
-    api_client: &async_api::Client,
-    zone_identifier: &str,
-    params: dns::ListDnsRecordsParams,
-) {
-    let ldr = dns::ListDnsRecords {
-        zone_identifier,
-        params,
-    };
-
-    let response = api_client.request(&ldr).await;
-    match response {
-        Ok(success) => {
-            //log::info!("success: {:?}", success);
-            let record: Vec<dns::DnsRecord> = success.result;
-            for r in record {
-                log::info!("{:?}", r);
-            }
-        }
-        Err(e) => match e {
-            ApiFailure::Error(status, err) => {
-                log::error!("HTTP {}: {:?}", status, err);
-            }
-            ApiFailure::Invalid(req_err) => log::error!("Error: {}", req_err),
-        },
-    }
 }

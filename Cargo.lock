@@ -699,6 +699,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "212d0f5754cb6769937f4501cc0e67f4f4483c8d2c3e1e922ee9edbe4ab4c7c0"
 
 [[package]]
+name = "domain"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2eb073186f6285f852b9e71b544111306ab08da4a6b40c25a73f4c9ee3e3df29"
+dependencies = [
+ "bytes",
+ "chrono",
+ "rand",
+]
+
+[[package]]
 name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1149,12 +1160,15 @@ dependencies = [
 
 [[package]]
 name = "kuso-subdomain-adder"
-version = "0.3.4"
+version = "0.4.0"
 dependencies = [
  "actix-web",
  "anyhow",
+ "async-trait",
+ "bytes",
  "clap",
  "cloudflare",
+ "domain",
  "env_logger",
  "lazy_static",
  "log",
