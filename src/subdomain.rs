@@ -30,13 +30,13 @@ pub async fn add(
     let content = "redirect.kuso.domains";
     log::info!("add CNAME: {}", content);
     let record = dns::cname(&subdomain, content);
-    api_client.create_record(record.into()).await;
+    api_client.create_record(record).await;
 
     let content = target_url;
     log::info!("add TXT: {}", content);
     let txt_name = "_kuso-domains-to.".to_string() + &subdomain;
     let record = dns::txt(&txt_name, content);
-    api_client.create_record(record.into()).await;
+    api_client.create_record(record).await;
 
     subdomain
 }

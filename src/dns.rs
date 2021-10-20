@@ -91,7 +91,7 @@ impl ProviderClientTrait for CloudflareClient {
             return;
         }
         assert_eq!(records.len(), 1);
-        let r = records.into_iter().nth(0).unwrap();
+        let r = records.get(0).unwrap();
 
         let ddr = dns::DeleteDnsRecord {
             zone_identifier,
@@ -215,9 +215,7 @@ fn convert_record() {
 
     println!("{:?}", params);
     assert_eq!(params.name, "rcname");
-    assert!(
-        matches!(params.content, DnsContent::CNAME { content } if content == "cname".to_string())
-    );
+    assert!(matches!(params.content, DnsContent::CNAME { content } if content == *"cname"));
 
     let txt = "txt".to_string();
     let txt = domain::rdata::Txt::from_slice(txt.as_bytes()).unwrap();
@@ -228,5 +226,5 @@ fn convert_record() {
 
     println!("{:?}", params);
     assert_eq!(params.name, "rtname");
-    assert!(matches!(params.content, DnsContent::TXT{ content } if content == "txt".to_string()));
+    assert!(matches!(params.content, DnsContent::TXT{ content } if content == *"txt"));
 }
