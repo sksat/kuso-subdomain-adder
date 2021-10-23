@@ -23,6 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: install cargo-make
+        uses: davidB/rust-cargo-make@v1.6.0
+
+      - run: cargo-make --help
+
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
