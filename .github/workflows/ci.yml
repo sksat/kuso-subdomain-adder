@@ -7,6 +7,7 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain'
+      - 'playwright/**'
       - '.github/workflows/ci.yml'
   push:
     branches:
