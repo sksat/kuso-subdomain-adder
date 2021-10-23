@@ -42,12 +42,7 @@ jobs:
           args: --all-features
 
       - name: compile for unit test
-        uses: actions-rs/cargo@v1.0.3
-        with:
-          command: test
-          args: --no-run --locked
+        run: cargo test --no-run --locked
 
       - name: unit test
-        uses: actions-rs/cargo@v1.0.3
-        with:
-          command: test
+        run: cargo test
