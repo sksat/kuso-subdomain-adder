@@ -56,9 +56,12 @@ jobs:
 
       - uses: actions/setup-node@v2.4.1
       - name: install playwright
-        run: npm i -g playwright
+        run: |
+          cd playwright
+          npm i -g playwright
 
       - name: playwright
         run: |
           cargo run srv & # exec server in background
+          cd playwright
           playwright test
