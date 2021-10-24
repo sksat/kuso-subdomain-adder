@@ -1,3 +1,27 @@
 [tasks.compile-for-test]
 command = "cargo"
 args = ["test", "--no-run", "locked"]
+
+[tasks.install-playwright]
+script = '''
+cd playwright
+npm install
+npx playwright install
+'''
+
+[tasks.start-kuso]
+command = "cargo"
+args = ["run", "srv"]
+
+[tasks.playwright]
+script = '''
+cd playwright
+npx playwright test
+'''
+
+[tasks.test-e2e]
+script_runner = "@duckscript"
+script = '''
+cm_run_task --async start-kuso
+cm_run_task playwright
+'''
