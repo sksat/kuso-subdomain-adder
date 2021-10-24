@@ -30,7 +30,7 @@ jobs:
           override: true
 
       - name: install cargo-make
-        uses: davidB/rust-cargo-make@v1.6.0
+        uses: sksat/rust-cargo-make@add-makers
 
       - name: check cargo-make version
         run: |
