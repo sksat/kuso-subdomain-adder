@@ -60,6 +60,7 @@ jobs:
           cd playwright
           npm i -g playwright
           npm install
+          npx playwright install
 
       - name: playwright
         run: |
