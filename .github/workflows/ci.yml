@@ -65,4 +65,4 @@ jobs:
         run: |
           cargo run srv & # exec server in background
           cd playwright
-          playwright test
+          npx playwright test
