@@ -31,11 +31,12 @@ jobs:
 
       - name: install cargo-make
         uses: davidB/rust-cargo-make@v1.6.0
+
       - name: check cargo-make version
         run: |
-        cargo-make --version
-        cargo-make make --version
-        makers --version
+          cargo-make --version
+          cargo-make make --version
+          makers --version
 
       - name: cache dependencies
         uses: Swatinem/rust-cache@v1.3.0
