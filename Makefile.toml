@@ -1,0 +1,3 @@
+[tasks.compile-for-test]
+command = "cargo"
+args = ["test", "--no-run", "locked"]
