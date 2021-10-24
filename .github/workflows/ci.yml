@@ -48,7 +48,7 @@ jobs:
           args: --all-features
 
       - name: compile for unit test
-        run: cargo test --no-run --locked
+        run: cargo make compile-for-test
 
       - name: unit test
-        run: cargo test
+        run: cargo make test
