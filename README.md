@@ -3,6 +3,7 @@
 ![](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/build-image.yml/badge.svg?branch=master)
 ![](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/ci.yml/badge.svg?branch=master)
 [![Daily Container Image Vulnerability Scan](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/trivy-scan.yml/badge.svg?branch=master)](https://github.com/sksat/kuso-subdomain-adder/actions/workflows/trivy-scan.yml)  
+[![dependency status](https://deps.rs/repo/github/sksat/kuso-subdomain-adder/status.svg)](https://deps.rs/repo/github/sksat/kuso-subdomain-adder)
 [![](https://tokei.rs/b1/github/sksat/kuso-subdomain-adder?category=files)](https://github.com/sksat/kuso-subdomain-adder)
 [![](https://tokei.rs/b1/github/sksat/kuso-subdomain-adder?category=code)](https://github.com/sksat/kuso-subdomain-adder)
 [![](https://tokei.rs/b1/github/sksat/kuso-subdomain-adder?category=blanks)](https://github.com/sksat/kuso-subdomain-adder)
