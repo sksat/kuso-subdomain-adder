@@ -1,8 +1,16 @@
 blank_issues_enabled: true
 contact_links:
-  - name: GitHub Community Support
-    url: https://github.community/
+  - name: main instance
+    about: sksat-room server
+    url: https://kuso-subdomain-adder.sksat.net
+  - name: sub instance
+    about: cloud server
+    url: https://kuso-subdomain-adder2.sksat.net
+  - name: Otaku Twitter Support
     about: Please ask and answer questions here.
-  - name: GitHub Security Bug Bounty
-    url: https://bounty.github.com/
-    about: Please report security vulnerabilities here.
+    url: https://twitter.com/sksat_tty
+  - name: Otaku Discord Support
+    about: Please oni-denwa here when an incident occurs.
+  - name: Otaku Community Support
+    about: クソドメイン部
+    url: https://kuso.domains
