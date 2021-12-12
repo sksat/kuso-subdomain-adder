@@ -3,6 +3,13 @@
     "config:base"
   ],
   "lockFileMaintenance": { "enabled": true },
+  "packageRules": [
+    {
+      "groupName": "Rust",
+      "groupSlug": "rust",
+      "packageNames": ["rust", "ghcr.io/sksat/cargo-chef-docker"]
+    }
+  ],
   "regexManagers": [
     {
       "fileMatch": ["^rust-toolchain(\\.toml)?$"],
@@ -12,11 +19,6 @@
       "depNameTemplate": "rust",
       "lookupNameTemplate": "rust-lang/rust",
       "datasourceTemplate": "github-releases"
-    },
-    {
-      "groupName": "Rust",
-      "groupSlug": "rust",
-      "packageNames": ["rust", "ghcr.io/sksat/cargo-chef-docker"]
     }
   ]
 }
