@@ -12,6 +12,11 @@
       "depNameTemplate": "rust",
       "lookupNameTemplate": "rust-lang/rust",
       "datasourceTemplate": "github-releases"
+    },
+    {
+      "groupName": "Rust",
+      "groupSlug": "rust",
+      "packageNames": ["rust", "ghcr.io/sksat/cargo-chef-docker"]
     }
   ]
 }
