@@ -47,6 +47,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
 
+      - name: clippy with reviewdog
+        uses: sksat/action-clippy@main
+        with:
+          reporter: github-pr-review
+          clippy_flags: --all-features
+
       - name: compile for unit test
         run: cargo make compile-for-test
 
