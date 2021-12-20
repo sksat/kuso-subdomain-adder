@@ -8,6 +8,11 @@
       "groupName": "Rust",
       "groupSlug": "rust",
       "packageNames": ["rust", "ghcr.io/sksat/cargo-chef-docker"]
+    },
+    {
+      "groupName": "serde",
+      "groupSlug": "serde",
+      "packageNames": ["serde", "serde_derive"]
     }
   ],
   "regexManagers": [
