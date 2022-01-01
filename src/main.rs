@@ -51,8 +51,8 @@ async fn main() -> std::io::Result<()> {
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .arg(
-            Arg::with_name("config")
-                .short("c")
+            Arg::new("config")
+                .short('c')
                 .long("config")
                 .value_name("FILE")
                 .default_value("./config.toml")
@@ -60,22 +60,22 @@ async fn main() -> std::io::Result<()> {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("debug")
+            Arg::new("debug")
                 .long("debug")
-                .short("d")
+                .short('d')
                 .help("print debug information verbosely"),
         )
-        .subcommand(clap::SubCommand::with_name("srv").about("start server"))
+        .subcommand(clap::App::new("srv").about("start server"))
         .subcommand(
-            clap::SubCommand::with_name("add")
+            clap::App::new("add")
                 .about("add kuso subdomain")
-                .arg(Arg::with_name("subdomain").required(true).help("subdomain"))
-                .arg(Arg::with_name("target").required(true).help("target URL")),
+                .arg(Arg::new("subdomain").required(true).help("subdomain"))
+                .arg(Arg::new("target").required(true).help("target URL")),
         )
         .subcommand(
-            clap::SubCommand::with_name("delete")
+            clap::App::new("delete")
                 .about("delete kuso subdomain")
-                .arg(Arg::with_name("subdomain").required(true).help("subdomain")),
+                .arg(Arg::new("subdomain").required(true).help("subdomain")),
         )
         .get_matches();
 
