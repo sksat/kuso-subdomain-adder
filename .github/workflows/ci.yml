@@ -32,12 +32,6 @@ jobs:
       - name: install cargo-make
         uses: sksat/rust-cargo-make@add-makers
 
-      - name: check cargo-make version
-        run: |
-          cargo-make --version
-          cargo-make make --version
-          makers --version
-
       - name: cache dependencies
         uses: Swatinem/rust-cache@v1.3.0
 
