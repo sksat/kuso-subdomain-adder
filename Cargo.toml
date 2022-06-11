@@ -24,7 +24,7 @@ vergen = { version = "7.0.0", default-features = false, features = ["build", "ca
 anyhow = "1.0.57"
 
 [dependencies]
-actix-web = "4.0.1"
+actix-web = "4.1.0"
 async-trait = "0.1.53"
 bytes = "1.1.0"
 clap = "3.1.12"
