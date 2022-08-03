@@ -22,7 +22,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2.1.8
+        uses: github/codeql-action/upload-sarif@v2.1.18
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -38,7 +38,7 @@ jobs:
 
       - name: Upload SARIF file
         if: ${{ steps.scan.outputs.sarif != '' }}
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
 
@@ -57,6 +57,6 @@ jobs:
           severity: 'CRITICAL'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2.1.8
+        uses: github/codeql-action/upload-sarif@v2.1.18
         with:
           sarif_file: 'trivy-results.sarif'
