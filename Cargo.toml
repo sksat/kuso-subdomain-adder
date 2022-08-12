@@ -27,7 +27,7 @@ anyhow = "1.0.58"
 actix-web = "4.1.0"
 async-trait = "0.1.53"
 bytes = "1.2.0"
-clap = "3.2.6"
+clap = "3.2.17"
 cloudflare = "0.9.1"
 domain = { version = "0.6.1", features = ["master"] }
 env_logger = "0.9.0"
