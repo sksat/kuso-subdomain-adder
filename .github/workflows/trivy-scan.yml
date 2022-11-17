@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Scan for vulnerabilities
         id: scan
-        uses: crazy-max/ghaction-container-scan@v1.2.2
+        uses: crazy-max/ghaction-container-scan@v1.3.0
         with:
           image: ghcr.io/sksat/kuso-subdomain-adder:${{ github.event.inputs.tag || 'master' }}
           dockerfile: ./Dockerfile
