@@ -1,4 +1,4 @@
-FROM ghcr.io/sksat/cargo-chef-docker:1.66.0-bullseye@sha256:b722b9c656c5c8bd26944eea152a1137d3087b349a2899ed44fe68036ff146a4 as cargo-chef
+FROM ghcr.io/sksat/cargo-chef-docker:1.66.0-bullseye@sha256:bedc2a054bfbfe61a566127a6406533399ddb3643889ae7e41c08899260f4dc9 as cargo-chef
 
 FROM cargo-chef as planner
 WORKDIR chef
