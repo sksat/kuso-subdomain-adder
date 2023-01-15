@@ -12,7 +12,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release
 
-FROM gcr.io/distroless/cc@sha256:107c9b25dcdb5ad8fec3e047cdd8e69c26f6d4505cbfc652ce18644e745b6f26
+FROM gcr.io/distroless/cc@sha256:20ec142cb2763f73126ed6e6462f74777fbd8a49e1037cb1b0a5118749117954
 WORKDIR app
 COPY --from=builder /build/target/release/kuso-subdomain-adder /app
 CMD ["/app/kuso-subdomain-adder", "srv"]
