@@ -21,7 +21,7 @@ debug = 0
 
 [build-dependencies]
 vergen = { version = "7.5.1", default-features = false, features = ["build", "cargo", "git", "rustc"] }
-anyhow = "1.0.70"
+anyhow = "1.0.71"
 
 [dependencies]
 actix-web = "4.3.1"
