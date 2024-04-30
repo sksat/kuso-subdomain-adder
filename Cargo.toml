@@ -29,7 +29,7 @@ async-trait = "0.1.68"
 bytes = "1.4.0"
 clap = "3.2.25"
 cloudflare = "0.10.1"
-domain = { version = "0.6.1", features = ["master"] }
+domain = { version = "0.10.0", features = ["master"] }
 env_logger = "0.10.0"
 lazy_static = "1.4.0"
 log = "0.4.18"
