@@ -30,7 +30,7 @@ bytes = "1.4.0"
 clap = "3.2.25"
 cloudflare = "0.10.1"
 domain = { version = "0.6.1", features = ["master"] }
-env_logger = "0.10.0"
+env_logger = "0.11.0"
 lazy_static = "1.4.0"
 log = "0.4.18"
 punycode = "0.4.1"
